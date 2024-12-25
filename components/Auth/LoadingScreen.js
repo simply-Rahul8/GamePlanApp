@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -27,13 +28,25 @@ export default function LoadingScreen({ navigation }) {
       style={styles.gradient}
     >
       <View style={styles.container}>
+        {/* Logo */}
+        <Image
+          source={require('/Users/suryapothuri/GamePlan/White and Black Simple Soccer Logo  (1).png')} // Update with your logo path
+          style={styles.logo}
+        />
+
+        {/* Heading */}
         <Text style={styles.heading}>GamePlan</Text>
+
+        {/* Loader */}
+        
+
+        {/* Tagline */}
+        <Text style={styles.tagline}>Your sports journey begins here</Text>
         <ActivityIndicator
           size="large"
           color="#EDEDED"
           style={styles.loader}
         />
-        <Text style={styles.tagline}>Your sports journey begins here</Text>
       </View>
     </LinearGradient>
   );
@@ -46,6 +59,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+  logo: {
+    width: 150, // Adjust width as needed
+    height: 150, // Adjust height as needed
+    marginBottom: 20,
+    borderRadius: 75, // Makes the image round (half of width and height)
+    borderWidth: 2, // Optional: Add a border
+    borderColor: '#DA0037', // Optional: Border color to match the theme
+    resizeMode: 'cover', // Ensures the image fits the circular area
   },
   heading: {
     fontSize: 40,

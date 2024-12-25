@@ -2,128 +2,229 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
-  Image,
   TouchableOpacity,
+  ScrollView,
+  Image,
 } from 'react-native';
+import { Checkbox } from 'react-native-paper';
 
-export default function StudentDashboardScreen() {
-  const [tasks, setTasks] = useState([
-    { id: '1', title: 'Warm-up', status: 'Complete', image: 'https://via.placeholder.com/80', sport: 'Soccer' },
-    { id: '2', title: 'Dribbling', status: 'Complete', image: 'https://via.placeholder.com/80', sport: 'Soccer' },
-    { id: '3', title: 'Shooting', status: 'Incomplete', image: 'https://via.placeholder.com/80', sport: 'Soccer' },
-    { id: '4', title: 'Passing', status: 'Incomplete', image: 'https://via.placeholder.com/80', sport: 'Soccer' },
-    { id: '5', title: 'Defense', status: 'Incomplete', image: 'https://via.placeholder.com/80', sport: 'Soccer' },
-    { id: '6', title: 'Cool Down', status: 'Complete', image: 'https://via.placeholder.com/80', sport: 'Soccer' },
-  ]);
-  const [selectedSport, setSelectedSport] = useState('Soccer');
+export default function StudentDashboardScreen({ navigation }) {
+  const [selectedToggle, setSelectedToggle] = useState('Exercise');
+  const [tasks, setTasks] = useState({
+    Exercise: [
+      { id: '1', name: 'Push-ups', completed: false },
+      { id: '2', name: 'Sit-ups', completed: false },
+      { id: '3', name: 'Running', completed: false },
+      { id: '4', name: 'Stretching', completed: false },
+    ],
+    Practice: [
+      { id: '1', name: 'Cover Drive', completed: false },
+      { id: '2', name: 'Catching Practice', completed: false },
+      { id: '3', name: 'Pull Shot', completed: false },
+      { id: '4', name: 'Bowling Yorkers', completed: false },
+    ],
+  });
 
-  const renderTaskItem = ({ item }) => (
-    <View style={styles.taskCard}>
-      <Image source={{ uri: item.image }} style={styles.taskImage} />
-      <View style={styles.taskDetails}>
-        <Text style={styles.taskTitle}>{item.title}</Text>
-        <Text style={styles.taskStatus}>{item.status}</Text>
-      </View>
-      <Text style={[styles.taskStatusIcon, item.status === 'Complete' ? styles.complete : styles.incomplete]}>
-        {item.status === 'Complete' ? '✔️' : '❌'}
-      </Text>
-    </View>
-  );
+  // Dummy student profile data
+  const studentProfile = {
+    name: 'Oliver Smith',
+    id: '123456',
+    image: 'https://via.placeholder.com/150',
+    age: '16',
+    gender: 'Male',
+    email: 'oliver.smith@example.com',
+    address: '123 Cricket Street',
+    trainerId: 'T98765',
+    trainerName: 'John Smith',
+    sport: 'Cricket',
+    emergencyContact: 'Sarah Smith, Mother, 555-1234',
+  };
+
+  const toggleTaskCompletion = (type, id) => {
+    setTasks((prevTasks) => {
+      const updatedTasks = prevTasks[type].map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      );
+      return { ...prevTasks, [type]: updatedTasks };
+    });
+  };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Student Dashboard</Text>
-        <View style={styles.profile}>
-          <Image
-            source={{ uri: 'https://via.placeholder.com/150' }}
-            style={styles.profileImage}
+      <TouchableOpacity
+        style={styles.header}
+        onPress={() => navigation.navigate('StudentProfile', { student: studentProfile })}
+      >
+        <Image
+          source={{ uri: studentProfile.image }}
+          style={styles.profileImage}
+        />
+        <Text style={styles.profileName}>{studentProfile.name}</Text>
+        <Text style={styles.profileId}>ID: {studentProfile.id}</Text>
+      </TouchableOpacity>
+
+      {/* Sport Name */}
+      <View style={styles.sportContainer}>
+        <Image
+          source={{ uri: 'https://via.placeholder.com/50' }}
+          style={styles.sportImage}
+        />
+        <Text style={styles.sportName}>{studentProfile.sport}</Text>
+      </View>
+
+      {/* Toggle Buttons */}
+      <View style={styles.toggleContainer}>
+        <TouchableOpacity
+          style={[
+            styles.toggleButton,
+            selectedToggle === 'Exercise' && styles.activeToggleButton,
+          ]}
+          onPress={() => setSelectedToggle('Exercise')}
+        >
+          <Text
+            style={[
+              styles.toggleText,
+              selectedToggle === 'Exercise' && styles.activeToggleText,
+            ]}
+          >
+            Exercise
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.toggleButton,
+            selectedToggle === 'Practice' && styles.activeToggleButton,
+          ]}
+          onPress={() => setSelectedToggle('Practice')}
+        >
+          <Text
+            style={[
+              styles.toggleText,
+              selectedToggle === 'Practice' && styles.activeToggleText,
+            ]}
+          >
+            Practice
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Tasks Section */}
+      {tasks[selectedToggle].map((item) => (
+        <View key={item.id} style={styles.taskItem}>
+          <Checkbox
+            status={item.completed ? 'checked' : 'unchecked'}
+            onPress={() => toggleTaskCompletion(selectedToggle, item.id)}
+            color="#DA0037"
           />
-          <View>
-            <Text style={styles.profileName}>Oliver Smith</Text>
-            <Text style={styles.profileId}>@oliversmith</Text>
-          </View>
+          <Text style={styles.taskName}>{item.name}</Text>
         </View>
-      </View>
+      ))}
 
-      {/* Sport Selector */}
-      <View style={styles.sportSelector}>
-        <TouchableOpacity
-          style={[styles.sportButton, selectedSport === 'Soccer' ? styles.activeSportButton : {}]}
-          onPress={() => setSelectedSport('Soccer')}
-        >
-          <Text style={styles.sportButtonText}>Soccer</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.sportButton, selectedSport === 'Basketball' ? styles.activeSportButton : {}]}
-          onPress={() => setSelectedSport('Basketball')}
-        >
-          <Text style={styles.sportButtonText}>Basketball</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.sportButton, selectedSport === 'Tennis' ? styles.activeSportButton : {}]}
-          onPress={() => setSelectedSport('Tennis')}
-        >
-          <Text style={styles.sportButtonText}>Tennis</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Assigned Tasks */}
-      <Text style={styles.sectionTitle}>Assigned Tasks</Text>
-      <FlatList
-        data={tasks.filter((task) => task.sport === selectedSport)}
-        keyExtractor={(item) => item.id}
-        renderItem={renderTaskItem}
-        contentContainerStyle={styles.taskList}
-      />
-    </View>
+      {/* Save Progress Button */}
+      <TouchableOpacity style={styles.saveButton}>
+        <Text style={styles.saveButtonText}>Save Progress</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#171717', padding: 20 },
-  header: { marginBottom: 20 },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#EDEDED', textAlign: 'center', marginBottom: 10 },
-  profile: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  profileImage: { width: 80, height: 80, borderRadius: 40, marginRight: 15 },
-  profileName: { fontSize: 20, fontWeight: 'bold', color: '#EDEDED' },
-  profileId: { fontSize: 16, color: '#CCCCCC' },
-  sportSelector: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
-  sportButton: {
-    flex: 1,
-    marginHorizontal: 5,
-    padding: 10,
-    borderWidth: 2,
-    borderColor: '#444444',
-    borderRadius: 10,
-    alignItems: 'center',
-    backgroundColor: '#1E1E1E',
+  container: {
+    flexGrow: 1,
+    padding: 20,
+    backgroundColor: '#171717',
   },
-  activeSportButton: { backgroundColor: '#DA0037', borderColor: '#DA0037' },
-  sportButtonText: { fontSize: 14, color: '#EDEDED', fontWeight: 'bold' },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#EDEDED', marginBottom: 10 },
-  taskList: { paddingBottom: 20 },
-  taskCard: {
+  header: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: '#DA0037',
+    marginBottom: 10,
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  profileId: {
+    fontSize: 16,
+    color: '#CCCCCC',
+  },
+  sportContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#444444',
+    backgroundColor: '#1E1E1E',
+    padding: 10,
     borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 3,
+    marginBottom: 20,
   },
-  taskImage: { width: 60, height: 60, borderRadius: 30, marginRight: 15 },
-  taskDetails: { flex: 1 },
-  taskTitle: { fontSize: 16, fontWeight: 'bold', color: '#EDEDED' },
-  taskStatus: { fontSize: 14, color: '#CCCCCC' },
-  taskStatusIcon: { fontSize: 16, fontWeight: 'bold' },
-  complete: { color: '#27AE60' }, // Green for complete tasks
-  incomplete: { color: '#DA0037' }, // Red for incomplete tasks
+  sportImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  sportName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  toggleButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  activeToggleButton: {
+    backgroundColor: '#DA0037',
+  },
+  toggleText: {
+    fontSize: 16,
+    color: '#CCCCCC',
+  },
+  activeToggleText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  taskItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 10,
+  },
+  taskName: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: '#FFFFFF',
+  },
+  saveButton: {
+    marginTop: 20,
+    backgroundColor: '#E0E0E0',
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#DA0037',
+  },
+  saveButtonText: {
+    color: '#171717',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

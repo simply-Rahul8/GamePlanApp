@@ -7,77 +7,71 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
-  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TrainerDashboardScreen({ navigation }) {
   const [students, setStudents] = useState([
-    { id: '1', name: 'Alice Johnson', task: 'Math Homework', progress: 50, attendance: 80 },
-    { id: '2', name: 'Michael Brown', task: 'Science Project', progress: 70, attendance: 90 },
-    { id: '3', name: 'Emily Davis', task: 'History Essay', progress: 60, attendance: 85 },
-    { id: '4', name: 'David Wilson', task: 'Art Assignment', progress: 40, attendance: 75 },
+    { id: '1', name: 'Emily Johnson', role: 'Yoga Enthusiast', image: 'https://via.placeholder.com/150', sport: 'Yoga' },
+    { id: '2', name: 'Michael Brown', role: 'Weight Lifter', image: 'https://via.placeholder.com/150', sport: 'Weightlifting' },
+    { id: '3', name: 'Sarah Davis', role: 'Cardio Lover', image: 'https://via.placeholder.com/150', sport: 'Cardio' },
+    { id: '4', name: 'James Wilson', role: 'Fitness Trainer', image: 'https://via.placeholder.com/150', sport: 'Fitness' },
+    { id: '5', name: 'Olivia Martinez', role: 'Strength Trainer', image: 'https://via.placeholder.com/150', sport: 'Strength Training' },
+    { id: '6', name: 'Robert Taylor', role: 'Flexibility Expert', image: 'https://via.placeholder.com/150', sport: 'Flexibility' },
   ]);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const handleAssignTask = (studentId, task) => {
-    const updatedStudents = students.map((student) =>
-      student.id === studentId ? { ...student, task } : student
-    );
-    setStudents(updatedStudents);
-    Alert.alert('Task Assigned', `Assigned "${task}" to ${studentId}`);
-  };
+  const filteredStudents = students.filter((student) =>
+    student.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const renderStudentCard = ({ item }) => (
     <TouchableOpacity
       style={styles.studentCard}
-      onPress={() => navigation.navigate('StudentDetails', { student: item })}
+      onPress={() => navigation.navigate('StudentPage', { student: item })} // Navigate to StudentPage
     >
-      <Image
-        style={styles.studentImage}
-        source={{ uri: 'https://via.placeholder.com/150' }} // Replace with actual student image
-      />
+      <Image style={styles.studentImage} source={{ uri: item.image }} />
       <View style={styles.studentDetails}>
         <Text style={styles.studentName}>{item.name}</Text>
-        <Text style={styles.studentTask}>Task: {item.task}</Text>
-        <View style={styles.taskControls}>
-          <TextInput
-            style={styles.dropdown}
-            placeholder="Select Task"
-            placeholderTextColor="#CCCCCC"
-            onChangeText={(task) => handleAssignTask(item.id, task)}
-          />
-          <TouchableOpacity
-            style={styles.assignButton}
-            onPress={() => handleAssignTask(item.id, item.task)}
-          >
-            <Text style={styles.assignButtonText}>Assign</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.studentRole}>{item.role}</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <LinearGradient
-      colors={['#171717', '#444444']} // Gradient background
-      style={styles.gradient}
-    >
+    <LinearGradient colors={['#171717', '#444444']} style={styles.gradient}>
       <View style={styles.container}>
-        <Text style={styles.heading}>Trainer Dashboard</Text>
-        <View style={styles.trainerInfo}>
-          <Image
-            style={styles.trainerImage}
-            source={{ uri: 'https://via.placeholder.com/150' }} // Replace with actual trainer image
-          />
-          <View style={styles.trainerDetails}>
-            <Text style={styles.trainerName}>John Smith</Text>
-            <Text style={styles.trainerId}>Trainer ID: @johnsmith</Text>
-          </View>
+        {/* Trainer Profile */}
+        <View style={styles.profileHeader}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('TrainerProfile')}
+          >
+            <Image
+              style={styles.trainerImage}
+              source={{ uri: 'https://via.placeholder.com/150' }}
+            />
+            <Text style={styles.trainerName}>David Smith</Text>
+            <Text style={styles.trainerId}>@davidsmith</Text>
+          </TouchableOpacity>
         </View>
 
-        <Text style={styles.subheading}>Students List</Text>
+        {/* Search Bar */}
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={20} color="#CCCCCC" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search student..."
+            placeholderTextColor="#CCCCCC"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        {/* Students List Section */}
+        <Text style={styles.sectionTitle}>Students List</Text>
         <FlatList
-          data={students}
+          data={filteredStudents}
           keyExtractor={(item) => item.id}
           renderItem={renderStudentCard}
           contentContainerStyle={styles.studentList}
@@ -90,69 +84,77 @@ export default function TrainerDashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   container: { flex: 1, padding: 20 },
-  heading: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#EDEDED',
-    textAlign: 'center',
-    marginBottom: 10,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-  },
-  trainerInfo: {
-    flexDirection: 'row',
+  profileHeader: {
     alignItems: 'center',
     marginBottom: 20,
-    backgroundColor: '#1E1E1E',
-    borderRadius: 15,
-    padding: 15,
+    position: 'relative',
+    marginTop: 20,
   },
-  trainerImage: { width: 80, height: 80, borderRadius: 40, marginRight: 15 },
-  trainerDetails: { flex: 1 },
-  trainerName: { fontSize: 20, fontWeight: 'bold', color: '#FFFFFF' },
-  trainerId: { fontSize: 16, color: '#CCCCCC' },
-  subheading: {
+  trainerImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 3,
+    borderWidth: 2,
+    borderColor: '#DA0037',
+  },
+  trainerName: {
     fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginTop: 5,
+  },
+  trainerId: {
+    fontSize: 16,
+    color: '#CCCCCC',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 20,
+    padding: 10,
+    marginBottom: 20,
+  },
+  searchInput: {
+    flex: 1,
+    marginHorizontal: 10,
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#DA0037',
     marginBottom: 10,
-    textAlign: 'center',
   },
-  studentList: { paddingBottom: 20 },
+  studentList: {
+    paddingBottom: 20,
+  },
   studentCard: {
     flexDirection: 'row',
-    backgroundColor: '#1E1E1E',
-    borderRadius: 10,
-    marginBottom: 15,
-    padding: 10,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  studentImage: { width: 60, height: 60, borderRadius: 30, marginRight: 10 },
-  studentDetails: { flex: 1 },
-  studentName: { fontSize: 16, fontWeight: 'bold', color: '#FFFFFF' },
-  studentTask: { fontSize: 14, color: '#CCCCCC', marginBottom: 10 },
-  taskControls: { flexDirection: 'row', alignItems: 'center' },
-  dropdown: {
-    flex: 1,
-    height: 40,
-    borderWidth: 1,
-    borderColor: '#555555',
+    backgroundColor: '#1E1E1E',
     borderRadius: 10,
     padding: 10,
-    marginRight: 10,
-    backgroundColor: '#1E1E1E',
+    marginBottom: 15,
+  },
+  studentImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 15,
+    borderWidth: 1,
+    borderColor: '#DA0037',
+  },
+  studentDetails: { flex: 1 },
+  studentName: {
+    fontSize: 16,
+    fontWeight: 'bold',
     color: '#FFFFFF',
   },
-  assignButton: {
-    backgroundColor: '#DA0037',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
+  studentRole: {
+    fontSize: 14,
+    color: '#CCCCCC',
   },
-  assignButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' },
 });

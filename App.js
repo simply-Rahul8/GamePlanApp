@@ -1,25 +1,34 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Image, View, StyleSheet } from 'react-native';
+import { Image, View, Text, StyleSheet } from 'react-native';
 import RegisterScreen from './components/Auth/RegisterScreen';
 import ForgotPasswordScreen from './components/Auth/ForgotPasswordScreen';
 import TrainerSignUpScreen from './components/Auth/TrainerSignUpScreen';
 import StudentSignUpScreen from './components/Auth/StudentSignUpScreen';
 import TrainerDashboardScreen from './components/Auth/TrainerDashboardScreen';
 import StudentDashboardScreen from './components/Auth/StudentDashboardScreen';
-import LoginScreen from './components/Auth/LoginScreen'; // Move the image to LoginScreen
+import LoginScreen from './components/Auth/LoginScreen';
 import LoadingScreen from './components/Auth/LoadingScreen';
+import TrainerProfileScreen from './components/Auth/TrainerProfileScreen';
+import SettingsScreen from './components/Auth/SettingsScreen';
+import StudentProfileScreen from './components/Auth/StudentProfileScreen';
+import StudentSettingsScreen from './components/Auth/StudentSettingsScreen';
+import StudentPage from './components/Auth/StudentPage'; // Import StudentPage if added for individual student profiles.
 
 const Stack = createStackNavigator();
 
-const HeaderLogo = ({ height, width }) => (
+const HeaderLogo = () => (
   <View style={styles.logoContainer}>
     <Image
-      source={require('/Users/suryapothuri/GamePlan/file_2024-12-24_13.07.06.png')}
-      style={{ height, width }}
-      resizeMode="contain"
+      source={require('/Users/suryapothuri/GamePlan/White and Black Simple Soccer Logo  (1).png')}
+      style={styles.logo}
+      resizeMode="cover"
     />
+    <Text style={styles.logoText}>
+      <Text style={{ color: '#DA0037' }}>GAME</Text>
+      <Text style={{ color: '#EDEDED' }}>PLAN</Text>
+    </Text>
   </View>
 );
 
@@ -27,80 +36,92 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Loading" // Start with the Loading Screen
+        initialRouteName="Loading"
         screenOptions={{
           headerStyle: { backgroundColor: '#171717' },
           headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold' },
           headerTitleAlign: 'center',
+          headerTitle: () => <HeaderLogo />,
         }}
       >
         {/* Loading Screen */}
         <Stack.Screen
           name="Loading"
           component={LoadingScreen}
-          options={{ headerShown: false }} // Hide the header for the loading screen
+          options={{ headerShown: false }}
         />
 
         {/* Login Screen */}
         <Stack.Screen
           name="Login"
           component={LoginScreen}
-          options={{ headerShown: false }} // Remove header to make the login screen full UI
+          options={{ headerShown: false }}
         />
 
         {/* Register Screen */}
         <Stack.Screen
           name="Register"
           component={RegisterScreen}
-          options={{
-            headerTitle: () => <HeaderLogo height={200} width={380} />, // Replace title with logo
-          }}
         />
 
         {/* Forgot Password Screen */}
         <Stack.Screen
           name="ForgotPassword"
           component={ForgotPasswordScreen}
-          options={{
-            headerTitle: () => <HeaderLogo height={200} width={380} />, // Replace title with logo
-          }}
         />
 
         {/* Trainer Sign Up Screen */}
         <Stack.Screen
           name="TrainerSignUp"
           component={TrainerSignUpScreen}
-          options={{
-            headerTitle: () => <HeaderLogo height={200} width={380} />, // Replace title with logo
-          }}
         />
 
         {/* Student Sign Up Screen */}
         <Stack.Screen
           name="StudentSignUp"
           component={StudentSignUpScreen}
-          options={{
-            headerTitle: () => <HeaderLogo height={200} width={380} />, // Replace title with logo
-          }}
         />
 
         {/* Trainer Dashboard Screen */}
         <Stack.Screen
           name="TrainerDashboard"
           component={TrainerDashboardScreen}
-          options={{
-            headerTitle: () => <HeaderLogo height={200} width={380} />, // Replace title with logo
-          }}
         />
 
         {/* Student Dashboard Screen */}
         <Stack.Screen
           name="StudentDashboard"
           component={StudentDashboardScreen}
-          options={{
-            headerTitle: () => <HeaderLogo height={200} width={380} />, // Replace title with logo
-          }}
+        />
+
+        {/* Trainer Profile Screen */}
+        <Stack.Screen
+          name="TrainerProfile"
+          component={TrainerProfileScreen}
+        />
+
+        {/* Settings Screen */}
+        <Stack.Screen
+          name="SettingsScreen"
+          component={SettingsScreen}
+        />
+
+        {/* Student Profile Screen */}
+        <Stack.Screen
+          name="StudentProfile"
+          component={StudentProfileScreen}
+        />
+
+        {/* Student Settings Screen */}
+        <Stack.Screen
+          name="StudentSettings"
+          component={StudentSettingsScreen}
+        />
+
+        {/* Student Page */}
+        <Stack.Screen
+          name="StudentPage"
+          component={StudentPage} // Add this if you have a separate StudentPage component.
         />
       </Stack.Navigator>
     </NavigationContainer>
@@ -109,8 +130,20 @@ export default function App() {
 
 const styles = StyleSheet.create({
   logoContainer: {
-    flex: 1,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#DA0037',
+  },
+  logoText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginLeft: 10,
   },
 });
