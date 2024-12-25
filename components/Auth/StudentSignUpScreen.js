@@ -7,7 +7,10 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Picker } from '@react-native-picker/picker';
 
 export default function StudentSignUpScreen({ navigation }) {
   const [fullName, setFullName] = useState('');
@@ -18,10 +21,11 @@ export default function StudentSignUpScreen({ navigation }) {
   const [trainerID, setTrainerID] = useState('');
   const [address, setAddress] = useState('');
   const [sport, setSport] = useState('');
+  const [gender, setGender] = useState('');
   const [emergencyContact, setEmergencyContact] = useState('');
 
   const handleSignUp = () => {
-    if (!fullName || !email || !password || !confirmPassword) {
+    if (!fullName || !age || !sport || !gender || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all mandatory fields.');
       return;
     }
@@ -34,165 +38,247 @@ export default function StudentSignUpScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.heading}>Student Sign Up</Text>
-      <Text style={styles.subheading}>Create your student profile</Text>
+    <LinearGradient
+      colors={['#171717', '#444444']} // Gradient background
+      style={styles.gradient}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Text style={styles.heading}>Student Sign Up</Text>
+        <Text style={styles.subheading}>Create your student profile and start your sports journey</Text>
 
-      {/* Full Name */}
-      <Text style={styles.label}>Full Name</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your full name"
-        value={fullName}
-        onChangeText={setFullName}
-      />
-
-      {/* Age */}
-      <Text style={styles.label}>Age</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your age"
-        value={age}
-        onChangeText={setAge}
-        keyboardType="numeric"
-      />
-
-      {/* Email Address */}
-      <Text style={styles.label}>Email Address</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your email address"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-
-      {/* Password */}
-      <Text style={styles.label}>Password</Text>
-      <View style={styles.passwordContainer}>
+        {/* Full Name */}
+        <Text style={styles.label}>Full Name</Text>
         <TextInput
-          style={[styles.input, styles.passwordInput]}
+          style={styles.input}
+          placeholder="Enter your full name"
+          placeholderTextColor="#CCCCCC"
+          value={fullName}
+          onChangeText={setFullName}
+        />
+
+        {/* Age */}
+        <Text style={styles.label}>Age</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your age"
+          placeholderTextColor="#CCCCCC"
+          value={age}
+          onChangeText={setAge}
+          keyboardType="numeric"
+        />
+
+        {/* Gender */}
+        <Text style={styles.label}>Gender</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={gender}
+            onValueChange={(itemValue) => setGender(itemValue)}
+            style={styles.picker}
+            dropdownIconColor="#EDEDED"
+          >
+            <Picker.Item label="Select Gender" value="" />
+            <Picker.Item label="Male" value="Male" />
+            <Picker.Item label="Female" value="Female" />
+            <Picker.Item label="Prefer not to say" value="Prefer not to say" />
+          </Picker>
+        </View>
+
+        {/* Email Address */}
+        <Text style={styles.label}>Email Address</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your email address"
+          placeholderTextColor="#CCCCCC"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        {/* Password */}
+        <Text style={styles.label}>Password</Text>
+        <TextInput
+          style={styles.input}
           placeholder="Create a password"
+          placeholderTextColor="#CCCCCC"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
         />
-      </View>
 
-      {/* Confirm Password */}
-      <Text style={styles.label}>Confirm Password</Text>
-      <View style={styles.passwordContainer}>
+        {/* Confirm Password */}
+        <Text style={styles.label}>Confirm Password</Text>
         <TextInput
-          style={[styles.input, styles.passwordInput]}
+          style={styles.input}
           placeholder="Re-enter your password"
+          placeholderTextColor="#CCCCCC"
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry
         />
-      </View>
 
-      {/* Trainer ID */}
-      <Text style={styles.label}>Trainer ID</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your trainer ID"
-        value={trainerID}
-        onChangeText={setTrainerID}
-      />
+        {/* Trainer ID */}
+        <Text style={styles.label}>Trainer ID</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your trainer ID"
+          placeholderTextColor="#CCCCCC"
+          value={trainerID}
+          onChangeText={setTrainerID}
+        />
 
-      {/* Address */}
-      <Text style={styles.label}>Address</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your address"
-        value={address}
-        onChangeText={setAddress}
-      />
+        {/* Address */}
+        <Text style={styles.label}>Address</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your address"
+          placeholderTextColor="#CCCCCC"
+          value={address}
+          onChangeText={setAddress}
+        />
 
-      {/* Sport */}
-      <Text style={styles.label}>Sport</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Select your sport"
-        value={sport}
-        onChangeText={setSport}
-      />
+        {/* Sport */}
+        <Text style={styles.label}>Sport</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={sport}
+            onValueChange={(itemValue) => setSport(itemValue)}
+            style={styles.picker}
+            dropdownIconColor="#EDEDED"
+          >
+            <Picker.Item label="Select Sport" value="" />
+            {[
+              'Badminton',
+              'Basketball',
+              'Cricket',
+              'Cycling',
+              'Football',
+              'Ice Hockey',
+              'Karate',
+              'Skying',
+              'Swimming',
+              'Volleyball',
+            ].map((sportOption) => (
+              <Picker.Item key={sportOption} label={sportOption} value={sportOption} />
+            ))}
+          </Picker>
+        </View>
 
-      {/* Emergency Contact */}
-      <Text style={styles.label}>Emergency Contact</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter emergency contact number"
-        value={emergencyContact}
-        onChangeText={setEmergencyContact}
-        keyboardType="phone-pad"
-      />
+        {/* Emergency Contact */}
+        <Text style={styles.label}>Emergency Contact</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter emergency contact number"
+          placeholderTextColor="#CCCCCC"
+          value={emergencyContact}
+          onChangeText={setEmergencyContact}
+          keyboardType="phone-pad"
+        />
 
-      {/* Sign Up Button */}
-      <TouchableOpacity style={styles.signupButton} onPress={handleSignUp}>
-        <Text style={styles.signupButtonText}>Sign Up</Text>
-      </TouchableOpacity>
+        {/* Sign Up Button */}
+        <TouchableOpacity style={styles.signupButton} onPress={handleSignUp}>
+          <Text style={styles.signupButtonText}>Sign Up</Text>
+        </TouchableOpacity>
 
-      {/* Cancel Button */}
-      <TouchableOpacity
-        style={styles.cancelButton}
-        onPress={() => navigation.navigate('Login')}
-      >
-        <Text style={styles.cancelButtonText}>Cancel</Text>
-      </TouchableOpacity>
+        {/* Cancel Button */}
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={() => navigation.navigate('Login')}
+        >
+          <Text style={styles.cancelButtonText}>Cancel</Text>
+        </TouchableOpacity>
 
-      {/* Already Have an Account */}
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.loginRedirect}>Already have an account? Log in here.</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        {/* Already Have an Account */}
+        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <Text style={styles.loginRedirect}>Already have an account? Log in here.</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  heading: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 },
-  subheading: { fontSize: 16, textAlign: 'center', color: '#666', marginBottom: 20 },
-  label: { fontSize: 14, color: '#666', marginBottom: 5 },
+  gradient: { flex: 1 },
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 20,
+  },
+  heading: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#EDEDED',
+    textAlign: 'center',
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+  },
+  subheading: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#CCCCCC',
+    marginBottom: 20,
+    fontStyle: 'italic',
+  },
+  label: {
+    fontSize: 16,
+    color: '#EDEDED',
+    marginBottom: 5,
+  },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    padding: 10,
+    borderColor: '#555555',
+    borderRadius: 10,
+    padding: 12,
     marginBottom: 20,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#1E1E1E',
+    color: '#FFFFFF',
   },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  pickerContainer: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    padding: 10,
-    backgroundColor: '#f9f9f9',
+    borderColor: '#555555',
+    borderRadius: 10,
+    backgroundColor: '#1E1E1E',
+    marginBottom: 20,
+  },
+  picker: {
+    color: '#FFFFFF',
+    height: Platform.OS === 'android' ? 50 : undefined,
   },
   signupButton: {
-    backgroundColor: '#36aaff',
+    backgroundColor: '#DA0037',
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 25,
     alignItems: 'center',
     marginBottom: 15,
+    shadowColor: '#DA0037',
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 4 },
   },
-  signupButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  signupButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
   cancelButton: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#CCCCCC',
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 25,
     alignItems: 'center',
     marginBottom: 20,
   },
-  cancelButtonText: { color: '#666', fontSize: 16 },
+  cancelButtonText: {
+    color: '#CCCCCC',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   loginRedirect: {
     textAlign: 'center',
-    color: '#36aaff',
+    color: '#DA0037',
     fontSize: 14,
     marginTop: 10,
+    textDecorationLine: 'underline',
   },
 });

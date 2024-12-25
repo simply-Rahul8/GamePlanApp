@@ -7,7 +7,10 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Picker } from '@react-native-picker/picker';
 
 export default function TrainerSignUpScreen({ navigation }) {
   const [name, setName] = useState('');
@@ -24,14 +27,13 @@ export default function TrainerSignUpScreen({ navigation }) {
   const [trainerID, setTrainerID] = useState('TR12345'); // Example static trainer ID
 
   const handleGenerateTrainerID = () => {
-    // Generate random trainer ID logic
     const newID = 'TR' + Math.floor(10000 + Math.random() * 90000);
     setTrainerID(newID);
     Alert.alert('Trainer ID Generated', `Your Trainer ID: ${newID}`);
   };
 
   const handleSignUp = () => {
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name || !age || !sports || !gender || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all mandatory fields.');
       return;
     }
@@ -40,155 +42,246 @@ export default function TrainerSignUpScreen({ navigation }) {
       return;
     }
     Alert.alert('Success', 'Trainer account created successfully!');
-    navigation.navigate('Login'); // Navigate to login or another screen after signup
+    navigation.navigate('Login'); // Navigate to login screen after signup
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.heading}>Trainer Sign Up</Text>
+    <LinearGradient
+      colors={['#171717', '#444444']}
+      style={styles.gradient}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Text style={styles.heading}>Trainer Sign Up</Text>
 
-      <Text style={styles.label}>Name</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your name"
-        value={name}
-        onChangeText={setName}
-      />
+        {/* Name */}
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your name"
+          placeholderTextColor="#CCCCCC"
+          value={name}
+          onChangeText={setName}
+        />
 
-      <Text style={styles.label}>Age</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your age"
-        value={age}
-        onChangeText={setAge}
-        keyboardType="numeric"
-      />
+        {/* Age */}
+        <Text style={styles.label}>Age</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your age"
+          placeholderTextColor="#CCCCCC"
+          value={age}
+          onChangeText={setAge}
+          keyboardType="numeric"
+        />
 
-      <Text style={styles.label}>Training Center</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter training center"
-        value={trainingCenter}
-        onChangeText={setTrainingCenter}
-      />
+        {/* Training Center */}
+        <Text style={styles.label}>Training Center</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter training center"
+          placeholderTextColor="#CCCCCC"
+          value={trainingCenter}
+          onChangeText={setTrainingCenter}
+        />
 
-      <Text style={styles.label}>Sports</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Select sports"
-        value={sports}
-        onChangeText={setSports}
-      />
+        {/* Sports */}
+        <Text style={styles.label}>Sports</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={sports}
+            onValueChange={(itemValue) => setSports(itemValue)}
+            style={styles.picker}
+            dropdownIconColor="#EDEDED"
+          >
+            <Picker.Item label="Select Sports" value="" />
+            {[
+              'Badminton',
+              'Basketball',
+              'Cricket',
+              'Cycling',
+              'Football',
+              'Ice Hockey',
+              'Karate',
+              'Skying',
+              'Swimming',
+              'Volleyball',
+            ].map((sport) => (
+              <Picker.Item key={sport} label={sport} value={sport} />
+            ))}
+          </Picker>
+        </View>
 
-      <Text style={styles.label}>Mobile</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter mobile number"
-        value={mobile}
-        onChangeText={setMobile}
-        keyboardType="phone-pad"
-      />
+        {/* Gender */}
+        <Text style={styles.label}>Gender</Text>
+        <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={gender}
+            onValueChange={(itemValue) => setGender(itemValue)}
+            style={styles.picker}
+            dropdownIconColor="#EDEDED"
+          >
+            <Picker.Item label="Select Gender" value="" />
+            <Picker.Item label="Male" value="Male" />
+            <Picker.Item label="Female" value="Female" />
+            <Picker.Item label="Prefer not to say" value="Prefer not to say" />
+          </Picker>
+        </View>
 
-      <Text style={styles.label}>Email</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter email address"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+        {/* Mobile */}
+        <Text style={styles.label}>Mobile</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter mobile number"
+          placeholderTextColor="#CCCCCC"
+          value={mobile}
+          onChangeText={setMobile}
+          keyboardType="phone-pad"
+        />
 
-      <Text style={styles.label}>Password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        {/* Email */}
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter email address"
+          placeholderTextColor="#CCCCCC"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-      <Text style={styles.label}>Confirm Password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-      />
+        {/* Password */}
+        <Text style={styles.label}>Password</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter password"
+          placeholderTextColor="#CCCCCC"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
-      <Text style={styles.label}>Gender</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Select gender"
-        value={gender}
-        onChangeText={setGender}
-      />
+        {/* Confirm Password */}
+        <Text style={styles.label}>Confirm Password</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm password"
+          placeholderTextColor="#CCCCCC"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+        />
 
-      <Text style={styles.label}>About Me</Text>
-      <TextInput
-        style={[styles.input, { height: 80 }]}
-        placeholder="Write a short bio"
-        value={aboutMe}
-        onChangeText={setAboutMe}
-        multiline
-      />
+        {/* About Me */}
+        <Text style={styles.label}>About Me</Text>
+        <TextInput
+          style={[styles.input, { height: 80 }]}
+          placeholder="Write a short bio"
+          placeholderTextColor="#CCCCCC"
+          value={aboutMe}
+          onChangeText={setAboutMe}
+          multiline
+        />
 
-      <Text style={styles.label}>Experience</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter years of experience"
-        value={experience}
-        onChangeText={setExperience}
-        keyboardType="numeric"
-      />
+        {/* Experience */}
+        <Text style={styles.label}>Experience</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter years of experience"
+          placeholderTextColor="#CCCCCC"
+          value={experience}
+          onChangeText={setExperience}
+          keyboardType="numeric"
+        />
 
-      <TouchableOpacity
-        style={styles.generateButton}
-        onPress={handleGenerateTrainerID}
-      >
-        <Text style={styles.generateButtonText}>Generate Trainer ID</Text>
-      </TouchableOpacity>
+        {/* Generate Trainer ID */}
+        <TouchableOpacity
+          style={styles.generateButton}
+          onPress={handleGenerateTrainerID}
+        >
+          <Text style={styles.generateButtonText}>Generate Trainer ID</Text>
+        </TouchableOpacity>
 
-      <Text style={styles.label}>Trainer ID</Text>
-      <TextInput
-        style={styles.input}
-        value={trainerID}
-        editable={false}
-      />
+        {/* Trainer ID */}
+        <Text style={styles.label}>Trainer ID</Text>
+        <TextInput
+          style={[styles.input, styles.disabledInput]}
+          value={trainerID}
+          editable={false}
+        />
 
-      <TouchableOpacity style={styles.signupButton} onPress={handleSignUp}>
-        <Text style={styles.signupButtonText}>Sign Up</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        {/* Sign Up */}
+        <TouchableOpacity style={styles.signupButton} onPress={handleSignUp}>
+          <Text style={styles.signupButtonText}>Sign Up</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  heading: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 20 },
-  label: { fontSize: 14, color: '#666', marginBottom: 5 },
+  gradient: { flex: 1 },
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 20,
+  },
+  heading: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#EDEDED',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    color: '#EDEDED',
+    marginBottom: 5,
+  },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    padding: 10,
+    borderColor: '#555555',
+    borderRadius: 10,
+    padding: 12,
     marginBottom: 20,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#1E1E1E',
+    color: '#FFFFFF',
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#555555',
+    borderRadius: 10,
+    backgroundColor: '#1E1E1E',
+    marginBottom: 20,
+  },
+  picker: {
+    color: '#FFFFFF',
+    height: Platform.OS === 'android' ? 50 : undefined,
+  },
+  disabledInput: {
+    backgroundColor: '#333333',
+    color: '#AAAAAA',
   },
   generateButton: {
-    backgroundColor: '#36aaff',
+    backgroundColor: '#DA0037',
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 25,
     alignItems: 'center',
     marginBottom: 20,
   },
-  generateButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  generateButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   signupButton: {
-    backgroundColor: '#36aaff',
+    backgroundColor: '#DA0037',
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 25,
     alignItems: 'center',
   },
-  signupButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  signupButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

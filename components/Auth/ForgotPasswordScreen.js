@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -23,71 +24,143 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Forgot Password</Text>
-      <Text style={styles.subheading}>
-        Please enter your email address and new password to reset your password.
-      </Text>
+    <LinearGradient
+      colors={['#171717', '#444444']} // Consistent gradient colors
+      style={styles.gradient}
+    >
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.heading}>Forgot Password</Text>
+          <Text style={styles.subheading}>
+            Let’s help you reset your password and get back on track!
+          </Text>
+        </View>
 
-      {/* Email Input */}
-      <Text style={styles.label}>Email Address</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-      </View>
+        {/* Email Input */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Email Address</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your email"
+              placeholderTextColor="#666"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+        </View>
 
-      {/* Password Input */}
-      <Text style={styles.label}>New Password</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter new password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={!showPassword}
-        />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Text style={styles.showPassword}>{showPassword ? "🙈" : "👁️"}</Text>
+        {/* Password Input */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>New Password</Text>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter new password"
+              placeholderTextColor="#666"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Text style={styles.showPassword}>{showPassword ? "🙈" : "👁️"}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Reset Password Button */}
+        <TouchableOpacity style={styles.resetButton} onPress={handleResetPassword}>
+          <Text style={styles.resetButtonText}>Reset Password</Text>
         </TouchableOpacity>
-      </View>
 
-      {/* Reset Password Button */}
-      <TouchableOpacity style={styles.resetButton} onPress={handleResetPassword}>
-        <Text style={styles.resetButtonText}>Reset Password</Text>
-      </TouchableOpacity>
-    </View>
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Stay Active, Stay Ahead!</Text>
+        </View>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#f5f8fc' },
-  heading: { fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 },
-  subheading: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 20 },
-  label: { fontSize: 14, color: '#666', marginBottom: 5 },
+  gradient: { flex: 1 },
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  header: {
+    marginBottom: 30,
+    alignItems: 'center',
+  },
+  heading: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#EDEDED',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+  subheading: {
+    fontSize: 14,
+    color: '#EDEDED',
+    textAlign: 'center',
+    marginTop: 10,
+    fontStyle: 'italic',
+    paddingHorizontal: 10,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    color: '#EDEDED',
+    marginBottom: 5,
+    fontWeight: '600',
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 20,
-    backgroundColor: '#fff',
-  },
-  input: { flex: 1, fontSize: 16 },
-  showPassword: { fontSize: 16, color: '#666' },
-  resetButton: {
-    backgroundColor: '#36aaff',
+    borderColor: '#444444',
+    borderRadius: 10,
     padding: 15,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginTop: 10,
+    backgroundColor: '#444444',
   },
-  resetButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#EDEDED',
+  },
+  showPassword: {
+    fontSize: 16,
+    color: '#DA0037',
+    marginLeft: 10,
+  },
+  resetButton: {
+    backgroundColor: '#DA0037',
+    padding: 15,
+    borderRadius: 25,
+    alignItems: 'center',
+    marginTop: 20,
+    shadowColor: '#DA0037',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  resetButtonText: {
+    color: '#EDEDED',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  footer: {
+    marginTop: 50,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 16,
+    color: '#EDEDED',
+    fontStyle: 'italic',
+  },
 });
