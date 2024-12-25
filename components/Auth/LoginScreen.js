@@ -9,8 +9,11 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+
+const { width: screenWidth } = Dimensions.get('window'); // Get screen width
 
 export default function LoginScreen({ navigation }) {
   const [isTrainer, setIsTrainer] = useState(true);
@@ -21,33 +24,25 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = () => {
     if (!email || !password) {
-      // Display an alert if fields are missing
       Alert.alert(
         '⚠️ Missing Information',
         'Please fill in all fields before logging in.',
-        [
-          {
-            text: 'OK',
-            style: 'default',
-            onPress: () => console.log('Alert closed'),
-          },
-        ]
+        [{ text: 'OK', style: 'default' }]
       );
-      return; // Exit the function if validation fails
+      return;
     }
 
-    // Show loading animation
     setLoading(true);
 
     setTimeout(() => {
-      setLoading(false); // Stop loading after delay
+      setLoading(false);
 
       if (isTrainer) {
-        navigation.navigate('TrainerDashboard'); // Redirect to Trainer Dashboard
+        navigation.navigate('TrainerDashboard');
       } else {
-        navigation.navigate('StudentDashboard'); // Redirect to Student Dashboard
+        navigation.navigate('StudentDashboard');
       }
-    }, 2000); // Simulate 2 seconds of loading
+    }, 2000);
   };
 
   return (
@@ -69,7 +64,6 @@ export default function LoginScreen({ navigation }) {
           </View>
         ) : (
           <>
-            {/* User Role Selection */}
             <View style={styles.toggleBox}>
               <TouchableOpacity
                 style={[styles.toggleButton, isTrainer ? styles.activeToggle : {}]}
@@ -99,7 +93,6 @@ export default function LoginScreen({ navigation }) {
               </TouchableOpacity>
             </View>
 
-            {/* Input Fields */}
             <Text style={styles.label}>Username or Email</Text>
             <TextInput
               style={styles.input}
@@ -122,28 +115,26 @@ export default function LoginScreen({ navigation }) {
                 placeholderTextColor="#CCCCCC"
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Text style={styles.showPassword}>{showPassword ? "🤫" : "👁️‍🗨️"}</Text>
+                <Text style={styles.showPassword}>
+                  {showPassword ? '🤫' : '👁️‍🗨️'}
+                </Text>
               </TouchableOpacity>
             </View>
 
-            {/* Forgot Password */}
             <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
               <Text style={styles.forgotPassword}>Forgot Password?</Text>
             </TouchableOpacity>
 
-            {/* Login Button */}
             <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
               <Text style={styles.loginButtonText}>Login</Text>
             </TouchableOpacity>
 
-            {/* OR Separator */}
             <View style={styles.separator}>
               <View style={styles.line} />
               <Text style={styles.orText}>OR</Text>
               <View style={styles.line} />
             </View>
 
-            {/* Sign Up Button */}
             <TouchableOpacity
               style={styles.signUpButton}
               onPress={() =>
@@ -172,8 +163,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   bannerImage: {
-    width: 520,
-    height: 209,
+    width: screenWidth * 1, // 80% of screen width
+    height: screenWidth * 0.6, // Maintain aspect ratio (adjust as needed)
   },
   loadingContainer: {
     alignItems: 'center',
