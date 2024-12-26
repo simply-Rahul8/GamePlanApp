@@ -51,7 +51,7 @@ export default function LoginScreen({ navigation }) {
         {/* Top Image */}
         <View style={styles.imageContainer}>
           <Image
-            source={require('/Users/suryapothuri/GamePlan/assets/banner.png')}
+            source={require("../../assets/banner.png")}
             style={styles.bannerImage}
             resizeMode="contain"
           />
