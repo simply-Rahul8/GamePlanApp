@@ -29,7 +29,7 @@ export default function TrainerDashboardScreen({ navigation }) {
   const renderStudentCard = ({ item }) => (
     <TouchableOpacity
       style={styles.studentCard}
-      onPress={() => navigation.navigate('StudentPage', { student: item })} // Navigate to StudentPage
+      onPress={() => navigation.navigate('StudentPage', { student: item })}
     >
       <Image style={styles.studentImage} source={{ uri: item.image }} />
       <View style={styles.studentDetails}>
@@ -46,6 +46,7 @@ export default function TrainerDashboardScreen({ navigation }) {
         <View style={styles.profileHeader}>
           <TouchableOpacity
             onPress={() => navigation.navigate('TrainerProfile')}
+            style={styles.profileTouchable}
           >
             <Image
               style={styles.trainerImage}
@@ -83,18 +84,19 @@ export default function TrainerDashboardScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
-  container: { flex: 1, padding: 20 },
+  container: { flex: 1, paddingHorizontal: 20, paddingTop: 1 },
   profileHeader: {
     alignItems: 'center',
     marginBottom: 20,
-    position: 'relative',
-    marginTop: 20,
+  },
+  profileTouchable: {
+    alignItems: 'center',
   },
   trainerImage: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    marginBottom: 3,
+    marginBottom: 5,
     borderWidth: 2,
     borderColor: '#DA0037',
   },

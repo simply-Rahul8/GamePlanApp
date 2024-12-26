@@ -30,7 +30,7 @@ export default function LoadingScreen({ navigation }) {
       <View style={styles.container}>
         {/* Logo */}
         <Image
-          source={require('/Users/suryapothuri/GamePlan/White and Black Simple Soccer Logo  (1).png')} // Update with your logo path
+          source={require('/Users/suryapothuri/GamePlan/assets/logo.png')} // Update with your logo path
           style={styles.logo}
         />
 

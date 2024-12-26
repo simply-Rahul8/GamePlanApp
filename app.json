@@ -13,14 +13,27 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.anonymous.GamePlan"
+      "bundleIdentifier": "com.anonymous.GamePlan",
+      "config": {
+        "googleMapsApiKey": "AIzaSyDFUNL-elICU4F7p_lBhoPZm-78_H1AtYU" 
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "newArchEnabled": true
       },
-      "package": "com.anonymous.GamePlan"
+      "package": "com.anonymous.GamePlan",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDFUNL-elICU4F7p_lBhoPZm-78_H1AtYU" 
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function StudentSettingsScreen({ route, navigation }) {
   const { student } = route.params;
@@ -58,64 +59,87 @@ export default function StudentSettingsScreen({ route, navigation }) {
       sport,
       emergencyContact,
     };
-    // Simulate saving data and navigating back
     console.log('Updated Student:', updatedStudent);
     navigation.goBack();
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={pickImage}>
-          <Image source={{ uri: profileImage }} style={styles.profileImage} />
-        </TouchableOpacity>
-        <Text style={styles.profileName}>{name}</Text>
-        <Text style={styles.profileId}>@{student.id}</Text>
-      </View>
+    <LinearGradient colors={['#171717', '#444444']} style={styles.gradient}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={pickImage}>
+            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+          </TouchableOpacity>
+          <Text style={styles.profileName}>{name}</Text>
+          <Text style={styles.profileId}>@{student.id}</Text>
+        </View>
 
-      {/* Profile Information */}
-      <Text style={styles.sectionTitle}>Profile Information</Text>
-      <TextInput style={styles.input} placeholder="Name" value={name} onChangeText={setName} />
-      <TextInput style={styles.input} placeholder="Age" keyboardType="numeric" value={age} onChangeText={setAge} />
-      <Picker selectedValue={gender} onValueChange={(value) => setGender(value)} style={styles.picker}>
-        <Picker.Item label="Select gender" value="" />
-        <Picker.Item label="Male" value="Male" />
-        <Picker.Item label="Female" value="Female" />
-      </Picker>
+        {/* Profile Information */}
+        <Text style={styles.sectionTitle}>Profile Information</Text>
+        <TextInput style={styles.input} placeholder="Name" value={name} onChangeText={setName} />
+        <TextInput
+          style={styles.input}
+          placeholder="Age"
+          keyboardType="numeric"
+          value={age}
+          onChangeText={setAge}
+        />
+        <Picker
+          selectedValue={gender}
+          onValueChange={(value) => setGender(value)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Select gender" value="" />
+          <Picker.Item label="Male" value="Male" />
+          <Picker.Item label="Female" value="Female" />
+        </Picker>
 
-      {/* Contact Information */}
-      <Text style={styles.sectionTitle}>Contact Information</Text>
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
-      <TextInput style={styles.input} placeholder="Address" value={address} onChangeText={setAddress} />
-      <TextInput
-        style={styles.input}
-        placeholder="Emergency Contact"
-        value={emergencyContact}
-        onChangeText={setEmergencyContact}
-      />
+        {/* Contact Information */}
+        <Text style={styles.sectionTitle}>Contact Information</Text>
+        <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
+        <TextInput style={styles.input} placeholder="Address" value={address} onChangeText={setAddress} />
+        <TextInput
+          style={styles.input}
+          placeholder="Emergency Contact"
+          value={emergencyContact}
+          onChangeText={setEmergencyContact}
+        />
 
-      {/* Trainer Information */}
-      <Text style={styles.sectionTitle}>Trainer Information</Text>
-      <TextInput style={styles.input} placeholder="Trainer ID" value={trainerId} onChangeText={setTrainerId} />
-      <TextInput style={styles.input} placeholder="Trainer Name" value={trainerName} onChangeText={setTrainerName} />
-      <TextInput style={styles.input} placeholder="Sport" value={sport} onChangeText={setSport} />
+        {/* Trainer Information */}
+        <Text style={styles.sectionTitle}>Trainer Information</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Trainer ID"
+          value={trainerId}
+          onChangeText={setTrainerId}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Trainer Name"
+          value={trainerName}
+          onChangeText={setTrainerName}
+        />
+        <TextInput style={styles.input} placeholder="Sport" value={sport} onChangeText={setSport} />
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.cancelButtonText}>Cancel</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
-          <Text style={styles.saveButtonText}>Save</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
+            <Text style={styles.saveButtonText}>Save</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   container: {
     padding: 20,
-    backgroundColor: '#171717',
   },
   header: {
     alignItems: 'center',

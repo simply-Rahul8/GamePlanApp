@@ -9,8 +9,10 @@ import {
   Alert,
   Platform,
 } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 
 export default function TrainerSignUpScreen({ navigation }) {
   const [name, setName] = useState('');
@@ -24,7 +26,14 @@ export default function TrainerSignUpScreen({ navigation }) {
   const [gender, setGender] = useState('');
   const [aboutMe, setAboutMe] = useState('');
   const [experience, setExperience] = useState('');
-  const [trainerID, setTrainerID] = useState('TR12345'); // Example static trainer ID
+  const [trainerID, setTrainerID] = useState('TR12345');
+  const [region, setRegion] = useState({
+    latitude: 37.78825,
+    longitude: -122.4324,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   const handleGenerateTrainerID = () => {
     const newID = 'TR' + Math.floor(10000 + Math.random() * 90000);
@@ -42,14 +51,11 @@ export default function TrainerSignUpScreen({ navigation }) {
       return;
     }
     Alert.alert('Success', 'Trainer account created successfully!');
-    navigation.navigate('Login'); // Navigate to login screen after signup
+    navigation.navigate('Login');
   };
 
   return (
-    <LinearGradient
-      colors={['#171717', '#444444']}
-      style={styles.gradient}
-    >
+    <LinearGradient colors={['#171717', '#444444']} style={styles.gradient}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.heading}>Trainer Sign Up</Text>
 
@@ -76,13 +82,64 @@ export default function TrainerSignUpScreen({ navigation }) {
 
         {/* Training Center */}
         <Text style={styles.label}>Training Center</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter training center"
-          placeholderTextColor="#CCCCCC"
-          value={trainingCenter}
-          onChangeText={setTrainingCenter}
+        <GooglePlacesAutocomplete
+          placeholder="Search for training center"
+          minLength={2}
+          fetchDetails={true}
+          onPress={(data, details = null) => {
+            const { lat, lng } = details.geometry.location;
+            setTrainingCenter(data.description);
+            setRegion({
+              ...region,
+              latitude: lat,
+              longitude: lng,
+            });
+            setSelectedLocation({
+              latitude: lat,
+              longitude: lng,
+            });
+          }}
+          query={{
+            key: 'YOUR_GOOGLE_MAPS_API_KEY', // Replace with your API key
+            language: 'en',
+          }}
+          styles={{
+            textInput: [
+              styles.input,
+              { color: '#FFFFFF', placeholderTextColor: '#FFFFFF' },
+            ],
+            listView: { backgroundColor: '#1E1E1E', borderRadius: 10 },
+          }}
+          textInputProps={{
+            placeholderTextColor: '#FFFFFF', // White placeholder text
+          }}
         />
+
+        {/* Map */}
+        <View style={styles.mapContainer}>
+          <MapView
+            style={styles.map}
+            region={region}
+            onPress={(e) =>
+              setSelectedLocation(e.nativeEvent.coordinate)
+            }
+          >
+            {selectedLocation && (
+              <Marker coordinate={selectedLocation} />
+            )}
+          </MapView>
+        </View>
+        <TouchableOpacity
+          style={styles.doneButton}
+          onPress={() =>
+            Alert.alert(
+              'Location Selected',
+              `Latitude: ${selectedLocation?.latitude}, Longitude: ${selectedLocation?.longitude}`
+            )
+          }
+        >
+          <Text style={styles.doneButtonText}>Done</Text>
+        </TouchableOpacity>
 
         {/* Sports */}
         <Text style={styles.label}>Sports</Text>
@@ -256,6 +313,27 @@ const styles = StyleSheet.create({
   picker: {
     color: '#FFFFFF',
     height: Platform.OS === 'android' ? 50 : undefined,
+  },
+  mapContainer: {
+    height: 300,
+    marginBottom: 20,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  map: {
+    flex: 1,
+  },
+  doneButton: {
+    backgroundColor: '#DA0037',
+    padding: 10,
+    borderRadius: 20,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  doneButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   disabledInput: {
     backgroundColor: '#333333',

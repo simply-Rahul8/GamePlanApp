@@ -1,5 +1,13 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function StudentProfileScreen({ route, navigation }) {
@@ -18,67 +26,71 @@ export default function StudentProfileScreen({ route, navigation }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Image source={{ uri: student.image }} style={styles.profileImage} />
-        <Text style={styles.profileName}>{student.name}</Text>
-        <Text style={styles.profileId}>@{student.id}</Text>
-        {/* Settings Button */}
-        <TouchableOpacity
-          style={styles.settingsButton}
-          onPress={() =>
-            navigation.navigate('StudentSettings', {
-              student,
-            })
-          }
-        >
-          <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
+    <LinearGradient colors={['#171717', '#444444']} style={styles.gradient}>
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Image source={{ uri: student.image }} style={styles.profileImage} />
+          <Text style={styles.profileName}>{student.name}</Text>
+          <Text style={styles.profileId}>@{student.id}</Text>
+          {/* Settings Button */}
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() =>
+              navigation.navigate('StudentSettings', {
+                student,
+              })
+            }
+          >
+            <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
 
-      {/* Personal Information */}
-      <Text style={styles.sectionTitle}>Personal Information</Text>
-      <View style={styles.infoSection}>
-        <Text style={styles.infoLabel}>Name</Text>
-        <Text style={styles.infoValue}>{student.name}</Text>
-        <Text style={styles.infoLabel}>ID</Text>
-        <Text style={styles.infoValue}>{student.id}</Text>
-        <Text style={styles.infoLabel}>Age</Text>
-        <Text style={styles.infoValue}>{student.age}</Text>
-        <Text style={styles.infoLabel}>Gender</Text>
-        <Text style={styles.infoValue}>{student.gender}</Text>
-        <Text style={styles.infoLabel}>Email</Text>
-        <Text style={styles.infoValue}>{student.email}</Text>
-        <Text style={styles.infoLabel}>Address</Text>
-        <Text style={styles.infoValue}>{student.address}</Text>
-      </View>
+        {/* Personal Information */}
+        <Text style={styles.sectionTitle}>Personal Information</Text>
+        <View style={styles.infoSection}>
+          <Text style={styles.infoLabel}>Name</Text>
+          <Text style={styles.infoValue}>{student.name}</Text>
+          <Text style={styles.infoLabel}>ID</Text>
+          <Text style={styles.infoValue}>{student.id}</Text>
+          <Text style={styles.infoLabel}>Age</Text>
+          <Text style={styles.infoValue}>{student.age}</Text>
+          <Text style={styles.infoLabel}>Gender</Text>
+          <Text style={styles.infoValue}>{student.gender}</Text>
+          <Text style={styles.infoLabel}>Email</Text>
+          <Text style={styles.infoValue}>{student.email}</Text>
+          <Text style={styles.infoLabel}>Address</Text>
+          <Text style={styles.infoValue}>{student.address}</Text>
+        </View>
 
-      {/* Academic Information */}
-      <Text style={styles.sectionTitle}>Academic Information</Text>
-      <View style={styles.infoSection}>
-        <Text style={styles.infoLabel}>Trainer ID</Text>
-        <Text style={styles.infoValue}>{student.trainerId}</Text>
-        <Text style={styles.infoLabel}>Trainer Name</Text>
-        <Text style={styles.infoValue}>{student.trainerName}</Text>
-        <Text style={styles.infoLabel}>Sport</Text>
-        <Text style={styles.infoValue}>{student.sport}</Text>
-      </View>
+        {/* Academic Information */}
+        <Text style={styles.sectionTitle}>Academic Information</Text>
+        <View style={styles.infoSection}>
+          <Text style={styles.infoLabel}>Trainer ID</Text>
+          <Text style={styles.infoValue}>{student.trainerId}</Text>
+          <Text style={styles.infoLabel}>Trainer Name</Text>
+          <Text style={styles.infoValue}>{student.trainerName}</Text>
+          <Text style={styles.infoLabel}>Sport</Text>
+          <Text style={styles.infoValue}>{student.sport}</Text>
+        </View>
 
-      {/* Emergency Contact */}
-      <Text style={styles.sectionTitle}>Emergency Contact</Text>
-      <View style={styles.infoSection}>
-        <Text style={styles.infoLabel}>Emergency Contact</Text>
-        <Text style={styles.infoValue}>{student.emergencyContact}</Text>
-      </View>
-    </ScrollView>
+        {/* Emergency Contact */}
+        <Text style={styles.sectionTitle}>Emergency Contact</Text>
+        <View style={styles.infoSection}>
+          <Text style={styles.infoLabel}>Emergency Contact</Text>
+          <Text style={styles.infoValue}>{student.emergencyContact}</Text>
+        </View>
+      </ScrollView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   container: {
     padding: 20,
-    backgroundColor: '#171717',
   },
   header: {
     alignItems: 'center',

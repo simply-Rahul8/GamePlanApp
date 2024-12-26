@@ -8,9 +8,12 @@ import {
   Image,
 } from 'react-native';
 import { Checkbox } from 'react-native-paper';
+import { Calendar } from 'react-native-calendars';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function StudentDashboardScreen({ navigation }) {
   const [selectedToggle, setSelectedToggle] = useState('Exercise');
+  const [attendanceMarked, setAttendanceMarked] = useState(false);
   const [tasks, setTasks] = useState({
     Exercise: [
       { id: '1', name: 'Push-ups', completed: false },
@@ -25,20 +28,15 @@ export default function StudentDashboardScreen({ navigation }) {
       { id: '4', name: 'Bowling Yorkers', completed: false },
     ],
   });
+  const [attendanceDates, setAttendanceDates] = useState({});
+  const [streak, setStreak] = useState(0);
 
   // Dummy student profile data
   const studentProfile = {
     name: 'Oliver Smith',
     id: '123456',
     image: 'https://via.placeholder.com/150',
-    age: '16',
-    gender: 'Male',
-    email: 'oliver.smith@example.com',
-    address: '123 Cricket Street',
-    trainerId: 'T98765',
-    trainerName: 'John Smith',
     sport: 'Cricket',
-    emergencyContact: 'Sarah Smith, Mother, 555-1234',
   };
 
   const toggleTaskCompletion = (type, id) => {
@@ -50,91 +48,154 @@ export default function StudentDashboardScreen({ navigation }) {
     });
   };
 
+  const handleAttendance = () => {
+    const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+    if (!attendanceMarked) {
+      setAttendanceMarked(true);
+      setStreak(streak + 1); // Increment streak
+
+      // Mark today's date in the calendar
+      setAttendanceDates((prevDates) => ({
+        ...prevDates,
+        [today]: {
+          selected: true,
+          marked: true,
+          selectedColor: '#DA0037',
+        },
+      }));
+    }
+  };
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
-      <TouchableOpacity
-        style={styles.header}
-        onPress={() => navigation.navigate('StudentProfile', { student: studentProfile })}
-      >
-        <Image
-          source={{ uri: studentProfile.image }}
-          style={styles.profileImage}
-        />
-        <Text style={styles.profileName}>{studentProfile.name}</Text>
-        <Text style={styles.profileId}>ID: {studentProfile.id}</Text>
-      </TouchableOpacity>
-
-      {/* Sport Name */}
-      <View style={styles.sportContainer}>
-        <Image
-          source={{ uri: 'https://via.placeholder.com/50' }}
-          style={styles.sportImage}
-        />
-        <Text style={styles.sportName}>{studentProfile.sport}</Text>
-      </View>
-
-      {/* Toggle Buttons */}
-      <View style={styles.toggleContainer}>
+    <LinearGradient colors={['#171717', '#444444']} style={styles.gradient}>
+      <ScrollView contentContainerStyle={styles.container}>
+        {/* Header */}
         <TouchableOpacity
-          style={[
-            styles.toggleButton,
-            selectedToggle === 'Exercise' && styles.activeToggleButton,
-          ]}
-          onPress={() => setSelectedToggle('Exercise')}
+          style={styles.header}
+          onPress={() =>
+            navigation.navigate('StudentProfile', { student: studentProfile })
+          }
         >
-          <Text
-            style={[
-              styles.toggleText,
-              selectedToggle === 'Exercise' && styles.activeToggleText,
-            ]}
-          >
-            Exercise
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.toggleButton,
-            selectedToggle === 'Practice' && styles.activeToggleButton,
-          ]}
-          onPress={() => setSelectedToggle('Practice')}
-        >
-          <Text
-            style={[
-              styles.toggleText,
-              selectedToggle === 'Practice' && styles.activeToggleText,
-            ]}
-          >
-            Practice
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Tasks Section */}
-      {tasks[selectedToggle].map((item) => (
-        <View key={item.id} style={styles.taskItem}>
-          <Checkbox
-            status={item.completed ? 'checked' : 'unchecked'}
-            onPress={() => toggleTaskCompletion(selectedToggle, item.id)}
-            color="#DA0037"
+          <Image
+            source={{ uri: studentProfile.image }}
+            style={styles.profileImage}
           />
-          <Text style={styles.taskName}>{item.name}</Text>
-        </View>
-      ))}
+          <Text style={styles.profileName}>{studentProfile.name}</Text>
+          <Text style={styles.profileId}>ID: {studentProfile.id}</Text>
+        </TouchableOpacity>
 
-      {/* Save Progress Button */}
-      <TouchableOpacity style={styles.saveButton}>
-        <Text style={styles.saveButtonText}>Save Progress</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        {/* Streak Badge */}
+        <View style={styles.streakBadge}>
+          <Text style={styles.streakText}>🔥 Streak: {streak} days</Text>
+        </View>
+
+        {/* Mark Attendance Button */}
+        <TouchableOpacity
+          style={[
+            styles.attendanceButton,
+            attendanceMarked && styles.attendanceButtonMarked,
+          ]}
+          onPress={handleAttendance}
+          disabled={attendanceMarked}
+        >
+          <Text
+            style={[
+              styles.attendanceButtonText,
+              attendanceMarked && styles.attendanceButtonTextMarked,
+            ]}
+          >
+            {attendanceMarked ? 'Attendance Marked' : 'Mark Attendance'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Sport Name */}
+        <View style={styles.sportContainer}>
+          <Image
+            source={{ uri: 'https://via.placeholder.com/50' }}
+            style={styles.sportImage}
+          />
+          <Text style={styles.sportName}>{studentProfile.sport}</Text>
+        </View>
+
+        {/* Toggle Buttons */}
+        <View style={styles.toggleContainer}>
+          <TouchableOpacity
+            style={[
+              styles.toggleButton,
+              selectedToggle === 'Exercise' && styles.activeToggleButton,
+            ]}
+            onPress={() => setSelectedToggle('Exercise')}
+          >
+            <Text
+              style={[
+                styles.toggleText,
+                selectedToggle === 'Exercise' && styles.activeToggleText,
+              ]}
+            >
+              Exercise
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.toggleButton,
+              selectedToggle === 'Practice' && styles.activeToggleButton,
+            ]}
+            onPress={() => setSelectedToggle('Practice')}
+          >
+            <Text
+              style={[
+                styles.toggleText,
+                selectedToggle === 'Practice' && styles.activeToggleText,
+              ]}
+            >
+              Practice
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Tasks Section */}
+        {tasks[selectedToggle].map((item) => (
+          <View key={item.id} style={styles.taskItem}>
+            <Checkbox
+              status={item.completed ? 'checked' : 'unchecked'}
+              onPress={() => toggleTaskCompletion(selectedToggle, item.id)}
+              color="#DA0037"
+            />
+            <Text style={styles.taskName}>{item.name}</Text>
+          </View>
+        ))}
+
+        {/* Calendar */}
+        <View style={styles.calendarContainer}>
+          <Calendar
+            markedDates={attendanceDates}
+            theme={{
+              calendarBackground: '#171717',
+              textSectionTitleColor: '#DA0037',
+              dayTextColor: '#FFFFFF',
+              todayTextColor: '#DA0037',
+              monthTextColor: '#FFFFFF',
+              arrowColor: '#DA0037',
+              selectedDayBackgroundColor: '#DA0037',
+              selectedDayTextColor: '#FFFFFF',
+            }}
+          />
+        </View>
+
+        {/* Save Progress Button */}
+        <TouchableOpacity style={styles.saveButton}>
+          <Text style={styles.saveButtonText}>Save Progress</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: { flex: 1 },
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: '#171717',
   },
   header: {
     alignItems: 'center',
@@ -156,6 +217,42 @@ const styles = StyleSheet.create({
   profileId: {
     fontSize: 16,
     color: '#CCCCCC',
+  },
+  streakBadge: {
+    backgroundColor: '#1E1E1E',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  streakText: {
+    color: '#DA0037',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  calendarContainer: {
+    marginBottom: 20,
+  },
+  attendanceButton: {
+    backgroundColor: '#DA0037',
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  attendanceButtonMarked: {
+    backgroundColor: '#1E1E1E',
+    borderWidth: 2,
+    borderColor: '#DA0037',
+  },
+  attendanceButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  attendanceButtonTextMarked: {
+    color: '#DA0037',
   },
   sportContainer: {
     flexDirection: 'row',
