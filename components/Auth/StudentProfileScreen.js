@@ -6,9 +6,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
+import { uploadFile } from '../../utils/firebaseConfig'; // Adjust the path if necessary
 
 export default function StudentProfileScreen({ route, navigation }) {
   const student = {
@@ -25,12 +28,28 @@ export default function StudentProfileScreen({ route, navigation }) {
     emergencyContact: 'Sarah Johnson, Mother, 555-1234',
   };
 
+  const handleImageUpload = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: 'image/*' });
+      if (result.type === 'cancel') return;
+
+      const uploadedPath = await uploadFile(result);
+      student.image = uploadedPath; // Update the student's profile image URL
+      Alert.alert('Success', 'Profile image updated successfully!');
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      Alert.alert('Error', 'Failed to upload profile image.');
+    }
+  };
+
   return (
     <LinearGradient colors={['#171717', '#444444']} style={styles.gradient}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Image source={{ uri: student.image }} style={styles.profileImage} />
+          <TouchableOpacity onPress={handleImageUpload}>
+            <Image source={{ uri: student.image }} style={styles.profileImage} />
+          </TouchableOpacity>
           <Text style={styles.profileName}>{student.name}</Text>
           <Text style={styles.profileId}>@{student.id}</Text>
           {/* Settings Button */}

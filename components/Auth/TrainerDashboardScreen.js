@@ -7,9 +7,13 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
+  Button,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
+import { uploadFile } from '../../utils/firebaseConfig'; 
 
 export default function TrainerDashboardScreen({ navigation }) {
   const [students, setStudents] = useState([
@@ -21,6 +25,29 @@ export default function TrainerDashboardScreen({ navigation }) {
     { id: '6', name: 'Robert Taylor', role: 'Flexibility Expert', image: 'https://via.placeholder.com/150', sport: 'Flexibility' },
   ]);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // File Upload Handler
+  const handleFileUpload = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: '*/*' });
+      if (result.type === 'cancel') {
+        console.log('File selection canceled');
+        return;
+      }
+
+      const fileData = {
+        uri: result.uri,
+        name: result.name || 'uploaded_file',
+        type: result.mimeType || 'application/octet-stream',
+      };
+
+      const filePath = await uploadFile(fileData);
+      Alert.alert('Success', `File uploaded to: ${filePath}`);
+    } catch (error) {
+      Alert.alert('Error', 'File upload failed.');
+      console.error('Error uploading file:', error);
+    }
+  };
 
   const filteredStudents = students.filter((student) =>
     student.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -42,7 +69,6 @@ export default function TrainerDashboardScreen({ navigation }) {
   return (
     <LinearGradient colors={['#171717', '#444444']} style={styles.gradient}>
       <View style={styles.container}>
-        {/* Trainer Profile */}
         <View style={styles.profileHeader}>
           <TouchableOpacity
             onPress={() => navigation.navigate('TrainerProfile')}
@@ -57,7 +83,8 @@ export default function TrainerDashboardScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Search Bar */}
+        <Button title="Upload File" onPress={handleFileUpload} color="#DA0037" />
+
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color="#CCCCCC" />
           <TextInput
@@ -69,7 +96,6 @@ export default function TrainerDashboardScreen({ navigation }) {
           />
         </View>
 
-        {/* Students List Section */}
         <Text style={styles.sectionTitle}>Students List</Text>
         <FlatList
           data={filteredStudents}
