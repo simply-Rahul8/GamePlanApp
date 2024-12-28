@@ -1,6 +1,10 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+<<<<<<< HEAD
+=======
+apply plugin: "com.google.gms.google-services" // Firebase plugin
+>>>>>>> c44521a (Updated TrainerDashboardScreen and firebaseConfig.js)
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
@@ -20,6 +24,7 @@ react {
     bundleCommand = "export:embed"
 
     /* Folders */
+<<<<<<< HEAD
      //   The root of your project, i.e. where "package.json" lives. Default is '../..'
     // root = file("../../")
     //   The folder where the react-native NPM package is. Default is ../../node_modules/react-native
@@ -56,6 +61,44 @@ react {
     // hermesCommand = "$rootDir/my-custom-hermesc/bin/hermesc"
     //
     //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
+=======
+    //    The root of your project, i.e. where "package.json" lives. Default is '../..'
+    // root = file("../../")
+    //    The folder where the react-native NPM package is. Default is ../../node_modules/react-native
+    // reactNativeDir = file("../../node_modules/react-native")
+    //    The folder where the react-native Codegen package is. Default is ../../node_modules/@react-native/codegen
+    // codegenDir = file("../../node_modules/@react-native/codegen")
+
+    /* Variants */
+    //    The list of variants to that are debuggable. For those we're going to
+    //    skip the bundling of the JS bundle and the assets. By default is just 'debug'.
+    //    If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
+    // debuggableVariants = ["liteDebug", "prodDebug"]
+
+    /* Bundling */
+    //    A list containing the node command and its flags. Default is just 'node'.
+    // nodeExecutableAndArgs = ["node"]
+
+    //
+    //    The path to the CLI configuration file. Default is empty.
+    // bundleConfig = file(../rn-cli.config.js)
+    //
+    //    The name of the generated asset file containing your JS bundle
+    // bundleAssetName = "MyApplication.android.bundle"
+    //
+    //    The entry file for bundle generation. Default is 'index.android.js' or 'index.js'
+    // entryFile = file("../js/MyApplication.android.js")
+    //
+    //    A list of extra flags to pass to the 'bundle' commands.
+    //    See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
+    // extraPackagerArgs = []
+
+    /* Hermes Commands */
+    //    The hermes compiler command to run. By default it is 'hermesc'
+    // hermesCommand = "$rootDir/my-custom-hermesc/bin/hermesc"
+    //
+    //    The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
+>>>>>>> c44521a (Updated TrainerDashboardScreen and firebaseConfig.js)
     // hermesFlags = ["-O", "-output-source-map"]
 
     /* Autolinking */
@@ -130,16 +173,24 @@ android {
 // Accepts values in comma delimited lists, example:
 // android.packagingOptions.pickFirsts=/LICENSE,**/picasa.ini
 ["pickFirsts", "excludes", "merges", "doNotStrip"].each { prop ->
+<<<<<<< HEAD
     // Split option: 'foo,bar' -> ['foo', 'bar']
     def options = (findProperty("android.packagingOptions.$prop") ?: "").split(",");
     // Trim all elements in place.
     for (i in 0..<options.size()) options[i] = options[i].trim();
     // `[] - ""` is essentially `[""].filter(Boolean)` removing all empty strings.
+=======
+    def options = (findProperty("android.packagingOptions.$prop") ?: "").split(",");
+    for (i in 0..<options.size()) options[i] = options[i].trim();
+>>>>>>> c44521a (Updated TrainerDashboardScreen and firebaseConfig.js)
     options -= ""
 
     if (options.length > 0) {
         println "android.packagingOptions.$prop += $options ($options.length)"
+<<<<<<< HEAD
         // Ex: android.packagingOptions.pickFirsts += '**/SCCS/**'
+=======
+>>>>>>> c44521a (Updated TrainerDashboardScreen and firebaseConfig.js)
         options.each {
             android.packagingOptions[prop] += it
         }
@@ -173,4 +224,13 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+<<<<<<< HEAD
+=======
+
+    // Firebase dependencies
+    implementation platform('com.google.firebase:firebase-bom:33.7.0') // Firebase BoM
+    implementation 'com.google.firebase:firebase-analytics' // Firebase Analytics
+    implementation 'com.google.firebase:firebase-auth' // Firebase Authentication
+    implementation 'com.google.firebase:firebase-firestore' // Firebase Firestore
+>>>>>>> c44521a (Updated TrainerDashboardScreen and firebaseConfig.js)
 }

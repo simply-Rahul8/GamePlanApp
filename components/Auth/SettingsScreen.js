@@ -1,3 +1,4 @@
+// Updated SettingsScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -9,8 +10,9 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import { uploadFile } from '../../utils/firebaseConfig'; 
+import * as DocumentPicker from 'expo-document-picker';
 
 export default function SettingsScreen({ navigation, route }) {
   const profileData = route.params?.profileData || {
@@ -35,23 +37,20 @@ export default function SettingsScreen({ navigation, route }) {
   const [email, setEmail] = useState(profileData.email);
   const [biography, setBiography] = useState(profileData.biography);
 
-  const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const pickAndUploadImage = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: 'image/*' });
+      if (result.type === 'cancel') {
+        console.log('Image selection canceled');
+        return;
+      }
 
-    if (!permissionResult.granted) {
-      Alert.alert('Permission Denied', 'Permission to access photos is required.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setProfileImage(result.uri);
+      const uploadedFilePath = await uploadFile(result);
+      setProfileImage(uploadedFilePath);
+      Alert.alert('Success', 'Profile image updated successfully!');
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      Alert.alert('Error', 'Failed to upload profile image.');
     }
   };
 
@@ -74,7 +73,7 @@ export default function SettingsScreen({ navigation, route }) {
   return (
     <LinearGradient colors={['#171717', '#444444']} style={styles.gradient}>
       <ScrollView contentContainerStyle={styles.container}>
-        <TouchableOpacity style={styles.profileSection} onPress={pickImage}>
+        <TouchableOpacity style={styles.profileSection} onPress={pickAndUploadImage}>
           <Image style={styles.profileImage} source={{ uri: profileImage }} />
           <Text style={styles.profileName}>{fullName}</Text>
         </TouchableOpacity>
@@ -142,7 +141,10 @@ export default function SettingsScreen({ navigation, route }) {
           <Text style={styles.saveButtonText}>Save Changes</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={() => Alert.alert('Logged Out')}>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={() => Alert.alert('Logged Out')}
+        >
           <Text style={styles.logoutButtonText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -163,7 +165,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   profileName: { fontSize: 20, fontWeight: 'bold', color: '#FFFFFF' },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#DA0037', marginBottom: 10, marginTop: 20 },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#DA0037',
+    marginBottom: 10,
+    marginTop: 20,
+  },
   input: {
     backgroundColor: '#1E1E1E',
     borderRadius: 10,
@@ -175,8 +183,20 @@ const styles = StyleSheet.create({
     borderColor: '#555555',
   },
   textArea: { height: 100, textAlignVertical: 'top' },
-  saveButton: { backgroundColor: '#DA0037', paddingVertical: 15, borderRadius: 10, alignItems: 'center', marginTop: 20 },
+  saveButton: {
+    backgroundColor: '#DA0037',
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
   saveButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
-  logoutButton: { backgroundColor: '#444444', paddingVertical: 15, borderRadius: 10, alignItems: 'center', marginTop: 20 },
+  logoutButton: {
+    backgroundColor: '#444444',
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
   logoutButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
 });

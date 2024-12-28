@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
+import { uploadFile } from '../../utils/firebaseConfig'; 
 
 export default function TrainerProfileScreen({ navigation }) {
   const [profileData, setProfileData] = useState({
@@ -12,11 +14,28 @@ export default function TrainerProfileScreen({ navigation }) {
     sportSpecialty: 'Basketball',
     mobile: '+1 234 567 890',
     email: 'james.smith@elitefitness.com',
-    biography: 'James Smith is a dedicated sports trainer with over 10 years of experience in the fitness industry...'
+    biography: 'James Smith is a dedicated sports trainer with over 10 years of experience in the fitness industry...',
   });
 
   const updateProfileData = (updatedData) => {
     setProfileData(updatedData);
+  };
+
+  const handleImageUpload = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: 'image/*' });
+      if (result.type === 'cancel') {
+        console.log('Image selection canceled');
+        return;
+      }
+
+      const uploadedPath = await uploadFile(result);
+      setProfileData((prev) => ({ ...prev, profileImage: uploadedPath }));
+      Alert.alert('Success', 'Profile image updated successfully!');
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      Alert.alert('Error', 'Failed to upload profile image.');
+    }
   };
 
   return (
@@ -37,7 +56,9 @@ export default function TrainerProfileScreen({ navigation }) {
 
         {/* Profile Header */}
         <View style={styles.profileHeader}>
-          <Image style={styles.profileImage} source={{ uri: profileData.profileImage }} />
+          <TouchableOpacity onPress={handleImageUpload}>
+            <Image style={styles.profileImage} source={{ uri: profileData.profileImage }} />
+          </TouchableOpacity>
           <Text style={styles.profileName}>{profileData.fullName}</Text>
           <Text style={styles.profileId}>@jamesmith</Text>
         </View>
