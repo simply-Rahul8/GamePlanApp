@@ -1,5 +1,6 @@
-import { initializeApp } from 'firebase/app'; 
-import { getAuth } from 'firebase/auth';
+import { initializeApp } from 'firebase/app';
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes } from 'firebase/storage';
 
@@ -17,8 +18,12 @@ const firebaseConfig = {
 // Initialize Firebase app
 const app = initializeApp(firebaseConfig);
 
-// Export Firebase services
-export const auth = getAuth(app);
+// Initialize Firebase Auth with persistence
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
+
+// Export Firebase Firestore and Storage services
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
@@ -30,7 +35,7 @@ export const addTrainer = async (trainerData) => {
     await addDoc(collection(db, "trainers"), trainerData);
     console.log("Trainer added successfully!");
   } catch (error) {
-    console.error("Error adding trainer:", error);
+    console.error("Error adding trainer:", error.message);
   }
 };
 
@@ -40,7 +45,7 @@ export const addStudent = async (studentData) => {
     await addDoc(collection(db, "students"), studentData);
     console.log("Student added successfully!");
   } catch (error) {
-    console.error("Error adding student:", error);
+    console.error("Error adding student:", error.message);
   }
 };
 
@@ -52,7 +57,8 @@ export const fetchTrainers = async () => {
     querySnapshot.forEach((doc) => trainers.push({ id: doc.id, ...doc.data() }));
     return trainers;
   } catch (error) {
-    console.error("Error fetching trainers:", error);
+    console.error("Error fetching trainers:", error.message);
+    throw error;
   }
 };
 
@@ -64,7 +70,8 @@ export const fetchStudents = async () => {
     querySnapshot.forEach((doc) => students.push({ id: doc.id, ...doc.data() }));
     return students;
   } catch (error) {
-    console.error("Error fetching students:", error);
+    console.error("Error fetching students:", error.message);
+    throw error;
   }
 };
 
@@ -75,7 +82,7 @@ export const updateTrainer = async (trainerId, updatedData) => {
     await updateDoc(trainerDoc, updatedData);
     console.log("Trainer updated successfully!");
   } catch (error) {
-    console.error("Error updating trainer:", error);
+    console.error("Error updating trainer:", error.message);
   }
 };
 
@@ -86,7 +93,7 @@ export const updateStudent = async (studentId, updatedData) => {
     await updateDoc(studentDoc, updatedData);
     console.log("Student updated successfully!");
   } catch (error) {
-    console.error("Error updating student:", error);
+    console.error("Error updating student:", error.message);
   }
 };
 
@@ -96,7 +103,7 @@ export const deleteTrainer = async (trainerId) => {
     await deleteDoc(doc(db, "trainers", trainerId));
     console.log("Trainer deleted successfully!");
   } catch (error) {
-    console.error("Error deleting trainer:", error);
+    console.error("Error deleting trainer:", error.message);
   }
 };
 
@@ -106,7 +113,7 @@ export const deleteStudent = async (studentId) => {
     await deleteDoc(doc(db, "students", studentId));
     console.log("Student deleted successfully!");
   } catch (error) {
-    console.error("Error deleting student:", error);
+    console.error("Error deleting student:", error.message);
   }
 };
 
@@ -118,7 +125,7 @@ export const uploadFile = async (file) => {
     const blob = await response.blob();
 
     // Reference the file path in Firebase Storage
-    const storageRef = ref(storage, `uploads/${file.name}`); 
+    const storageRef = ref(storage, `uploads/${file.name}`);
 
     // Upload the file to Firebase Storage
     const snapshot = await uploadBytes(storageRef, blob);
@@ -128,7 +135,7 @@ export const uploadFile = async (file) => {
     // Return the file's full path
     return snapshot.metadata.fullPath;
   } catch (error) {
-    console.error("Error uploading file:", error);
+    console.error("Error uploading file:", error.message);
     throw error;
   }
 };
