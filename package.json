@@ -12,7 +12,11 @@
   "dependencies": {
     "@expo/metro-runtime": "~4.0.0",
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
+<<<<<<< HEAD
     "@react-native-async-storage/async-storage": "1.23.1",
+=======
+    "@react-native-async-storage/async-storage": "^1.23.1",
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
     "@react-native-community/checkbox": "^0.5.17",
     "@react-native-picker/picker": "2.9.0",
     "@react-navigation/native": "^7.0.14",
@@ -24,7 +28,10 @@
     "expo-location": "~18.0.4",
     "expo-status-bar": "~2.0.0",
     "firebase": "^11.1.0",
+<<<<<<< HEAD
     "geolib": "^3.3.4",
+=======
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.5",

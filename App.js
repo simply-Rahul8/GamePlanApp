@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Image, View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+=======
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { Image, View, Text, StyleSheet } from 'react-native';
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
 import RegisterScreen from './components/Auth/RegisterScreen';
 import ForgotPasswordScreen from './components/Auth/ForgotPasswordScreen';
 import TrainerSignUpScreen from './components/Auth/TrainerSignUpScreen';
@@ -15,6 +22,7 @@ import SettingsScreen from './components/Auth/SettingsScreen';
 import StudentProfileScreen from './components/Auth/StudentProfileScreen';
 import StudentSettingsScreen from './components/Auth/StudentSettingsScreen';
 import StudentPage from './components/Auth/StudentPage'; // Import StudentPage if added for individual student profiles.
+<<<<<<< HEAD
 import * as Location from 'expo-location';
 import { getDistance } from 'geolib';
 
@@ -23,6 +31,8 @@ const targetLocation = {
   longitude: 118.2426, // Replace with your longitude
   radius: 10, // Radius in meters
 };
+=======
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
 
 const Stack = createStackNavigator();
 
@@ -41,6 +51,7 @@ const HeaderLogo = () => (
 );
 
 export default function App() {
+<<<<<<< HEAD
   const [isInTargetLocation, setIsInTargetLocation] = useState(false);
 
   const requestLocationPermission = async () => {
@@ -108,6 +119,8 @@ export default function App() {
     );
   };
 
+=======
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
   return (
     <NavigationContainer>
       <Stack.Navigator
@@ -187,7 +200,11 @@ export default function App() {
           component={StudentProfileScreen}
         />
 
+<<<<<<< HEAD
         {/* StudentSettingsScreen */}
+=======
+        {/* Student Settings Screen */}
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
         <Stack.Screen
           name="StudentSettings"
           component={StudentSettingsScreen}
@@ -199,7 +216,10 @@ export default function App() {
           component={StudentPage} // Add this if you have a separate StudentPage component.
         />
       </Stack.Navigator>
+<<<<<<< HEAD
       <View style={styles.attendanceButtonContainer}>{renderAttendanceButton()}</View>
+=======
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
     </NavigationContainer>
   );
 }
@@ -222,6 +242,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 10,
   },
+<<<<<<< HEAD
   attendanceButtonContainer: {
     position: 'absolute',
     bottom: 30,
@@ -241,4 +262,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+=======
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
 });

@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 import { initializeApp } from 'firebase/app'; 
 import { getAuth } from 'firebase/auth';
+=======
+import { initializeApp } from 'firebase/app';
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
 import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes } from 'firebase/storage';
 
@@ -17,8 +23,17 @@ const firebaseConfig = {
 // Initialize Firebase app
 const app = initializeApp(firebaseConfig);
 
+<<<<<<< HEAD
 // Export Firebase services
 export const auth = getAuth(app);
+=======
+// Initialize Firebase Auth with persistence
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
+
+// Export Firebase Firestore and Storage services
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
@@ -30,7 +45,11 @@ export const addTrainer = async (trainerData) => {
     await addDoc(collection(db, "trainers"), trainerData);
     console.log("Trainer added successfully!");
   } catch (error) {
+<<<<<<< HEAD
     console.error("Error adding trainer:", error);
+=======
+    console.error("Error adding trainer:", error.message);
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
   }
 };
 
@@ -40,7 +59,11 @@ export const addStudent = async (studentData) => {
     await addDoc(collection(db, "students"), studentData);
     console.log("Student added successfully!");
   } catch (error) {
+<<<<<<< HEAD
     console.error("Error adding student:", error);
+=======
+    console.error("Error adding student:", error.message);
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
   }
 };
 
@@ -52,7 +75,12 @@ export const fetchTrainers = async () => {
     querySnapshot.forEach((doc) => trainers.push({ id: doc.id, ...doc.data() }));
     return trainers;
   } catch (error) {
+<<<<<<< HEAD
     console.error("Error fetching trainers:", error);
+=======
+    console.error("Error fetching trainers:", error.message);
+    throw error;
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
   }
 };
 
@@ -64,7 +92,12 @@ export const fetchStudents = async () => {
     querySnapshot.forEach((doc) => students.push({ id: doc.id, ...doc.data() }));
     return students;
   } catch (error) {
+<<<<<<< HEAD
     console.error("Error fetching students:", error);
+=======
+    console.error("Error fetching students:", error.message);
+    throw error;
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
   }
 };
 
@@ -75,7 +108,11 @@ export const updateTrainer = async (trainerId, updatedData) => {
     await updateDoc(trainerDoc, updatedData);
     console.log("Trainer updated successfully!");
   } catch (error) {
+<<<<<<< HEAD
     console.error("Error updating trainer:", error);
+=======
+    console.error("Error updating trainer:", error.message);
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
   }
 };
 
@@ -86,7 +123,11 @@ export const updateStudent = async (studentId, updatedData) => {
     await updateDoc(studentDoc, updatedData);
     console.log("Student updated successfully!");
   } catch (error) {
+<<<<<<< HEAD
     console.error("Error updating student:", error);
+=======
+    console.error("Error updating student:", error.message);
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
   }
 };
 
@@ -96,7 +137,11 @@ export const deleteTrainer = async (trainerId) => {
     await deleteDoc(doc(db, "trainers", trainerId));
     console.log("Trainer deleted successfully!");
   } catch (error) {
+<<<<<<< HEAD
     console.error("Error deleting trainer:", error);
+=======
+    console.error("Error deleting trainer:", error.message);
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
   }
 };
 
@@ -106,7 +151,11 @@ export const deleteStudent = async (studentId) => {
     await deleteDoc(doc(db, "students", studentId));
     console.log("Student deleted successfully!");
   } catch (error) {
+<<<<<<< HEAD
     console.error("Error deleting student:", error);
+=======
+    console.error("Error deleting student:", error.message);
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
   }
 };
 
@@ -118,7 +167,11 @@ export const uploadFile = async (file) => {
     const blob = await response.blob();
 
     // Reference the file path in Firebase Storage
+<<<<<<< HEAD
     const storageRef = ref(storage, `uploads/${file.name}`); 
+=======
+    const storageRef = ref(storage, `uploads/${file.name}`);
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
 
     // Upload the file to Firebase Storage
     const snapshot = await uploadBytes(storageRef, blob);
@@ -128,7 +181,11 @@ export const uploadFile = async (file) => {
     // Return the file's full path
     return snapshot.metadata.fullPath;
   } catch (error) {
+<<<<<<< HEAD
     console.error("Error uploading file:", error);
+=======
+    console.error("Error uploading file:", error.message);
+>>>>>>> d25250144073fcb2eb587e0f8039f7c364e41869
     throw error;
   }
 };
