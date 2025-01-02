@@ -11,7 +11,10 @@ import {
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
+import { db } from '../../utils/firebaseConfig'; // Import Firestore instance
+import { updateDoc, doc } from 'firebase/firestore'; // Firestore functions
 
 export default function StudentSettingsScreen({ route, navigation }) {
   const { student } = route.params;
@@ -46,7 +49,7 @@ export default function StudentSettingsScreen({ route, navigation }) {
     }
   };
 
-  const saveChanges = () => {
+  const saveChanges = async () => {
     const updatedStudent = {
       image: profileImage,
       name,
@@ -59,8 +62,21 @@ export default function StudentSettingsScreen({ route, navigation }) {
       sport,
       emergencyContact,
     };
-    console.log('Updated Student:', updatedStudent);
-    navigation.goBack();
+
+    try {
+      // Update Firestore
+      const studentDocRef = doc(db, 'students', student.id); // Firestore document reference
+      await updateDoc(studentDocRef, updatedStudent);
+
+      // Optionally, save updated data locally
+      await AsyncStorage.setItem('studentData', JSON.stringify(updatedStudent));
+
+      Alert.alert('Success', 'Profile updated successfully!');
+      navigation.goBack(); // Go back to the previous screen
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save changes. Please try again.');
+      console.error('Error updating student in Firestore:', error);
+    }
   };
 
   return (

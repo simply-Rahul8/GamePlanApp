@@ -1,4 +1,3 @@
-// Updated SettingsScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -11,42 +10,32 @@ import {
   Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { uploadFile } from '../../utils/firebaseConfig'; 
+import { uploadFile, db } from '../../utils/firebaseConfig';
+import { updateDoc, doc } from 'firebase/firestore';
 import * as DocumentPicker from 'expo-document-picker';
 
 export default function SettingsScreen({ navigation, route }) {
-  const profileData = route.params?.profileData || {
-    profileImage: 'https://via.placeholder.com/150',
-    fullName: 'James Smith',
-    age: '35',
-    trainingCenter: 'Elite Fitness',
-    sportSpecialty: 'Basketball',
-    mobile: '+1 234 567 890',
-    email: 'james.smith@elitefitness.com',
-    biography: 'Dedicated sports trainer with over 10 years of experience.',
-  };
-
+  const profileData = route.params?.profileData || {};
   const updateProfileData = route.params?.updateProfileData || (() => {});
 
-  const [profileImage, setProfileImage] = useState(profileData.profileImage);
-  const [fullName, setFullName] = useState(profileData.fullName);
-  const [age, setAge] = useState(profileData.age);
-  const [trainingCenter, setTrainingCenter] = useState(profileData.trainingCenter);
-  const [sportSpecialty, setSportSpecialty] = useState(profileData.sportSpecialty);
-  const [mobile, setMobile] = useState(profileData.mobile);
-  const [email, setEmail] = useState(profileData.email);
-  const [biography, setBiography] = useState(profileData.biography);
+  const [profileImage, setProfileImage] = useState(profileData.profileImage || '');
+  const [fullName, setFullName] = useState(profileData.name || '');
+  const [age, setAge] = useState(profileData.age || '');
+  const [trainingCenter, setTrainingCenter] = useState(profileData.trainingCenter || '');
+  const [sportSpecialty, setSportSpecialty] = useState(profileData.sports || '');
+  const [mobile, setMobile] = useState(profileData.mobile || '');
+  const [email, setEmail] = useState(profileData.email || '');
+  const [biography, setBiography] = useState(profileData.aboutMe || '');
+
+  const trainerId = profileData.trainerID || 'TR12345';
 
   const pickAndUploadImage = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({ type: 'image/*' });
-      if (result.type === 'cancel') {
-        console.log('Image selection canceled');
-        return;
-      }
+      if (result.type === 'cancel') return;
 
-      const uploadedFilePath = await uploadFile(result);
-      setProfileImage(uploadedFilePath);
+      const uploadedPath = await uploadFile(result);
+      setProfileImage(uploadedPath);
       Alert.alert('Success', 'Profile image updated successfully!');
     } catch (error) {
       console.error('Error uploading profile image:', error);
@@ -54,20 +43,28 @@ export default function SettingsScreen({ navigation, route }) {
     }
   };
 
-  const saveChanges = () => {
+  const saveChanges = async () => {
     const updatedData = {
       profileImage,
-      fullName,
+      name: fullName,
       age,
       trainingCenter,
-      sportSpecialty,
+      sports: sportSpecialty,
       mobile,
       email,
-      biography,
+      aboutMe: biography,
     };
 
-    updateProfileData(updatedData);
-    navigation.goBack();
+    try {
+      const trainerDocRef = doc(db, 'trainers', trainerId);
+      await updateDoc(trainerDocRef, updatedData);
+      updateProfileData(updatedData); // Dynamically update the Profile and Dashboard
+      Alert.alert('Success', 'Profile updated successfully!');
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      Alert.alert('Error', 'Failed to update profile.');
+    }
   };
 
   return (
@@ -140,13 +137,6 @@ export default function SettingsScreen({ navigation, route }) {
         <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
           <Text style={styles.saveButtonText}>Save Changes</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={() => Alert.alert('Logged Out')}
-        >
-          <Text style={styles.logoutButtonText}>Log Out</Text>
-        </TouchableOpacity>
       </ScrollView>
     </LinearGradient>
   );
@@ -155,48 +145,21 @@ export default function SettingsScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   container: { flexGrow: 1, padding: 20 },
-  profileSection: { alignItems: 'center', marginBottom: 20, marginTop: 50 },
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 2,
-    borderColor: '#DA0037',
-    marginBottom: 10,
-  },
+  profileSection: { alignItems: 'center', marginBottom: 20 },
+  profileImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 10 },
   profileName: { fontSize: 20, fontWeight: 'bold', color: '#FFFFFF' },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#DA0037',
-    marginBottom: 10,
-    marginTop: 20,
-  },
+  sectionTitle: { fontSize: 18, color: '#DA0037', marginBottom: 10 },
   input: {
     backgroundColor: '#1E1E1E',
-    borderRadius: 10,
     padding: 12,
+    borderRadius: 10,
     marginBottom: 15,
     color: '#FFFFFF',
     fontSize: 16,
     borderWidth: 1,
     borderColor: '#555555',
   },
-  textArea: { height: 100, textAlignVertical: 'top' },
-  saveButton: {
-    backgroundColor: '#DA0037',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
-  },
+  textArea: { height: 80, textAlignVertical: 'top' },
+  saveButton: { backgroundColor: '#DA0037', padding: 15, borderRadius: 10, marginTop: 20 },
   saveButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
-  logoutButton: {
-    backgroundColor: '#444444',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  logoutButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
 });

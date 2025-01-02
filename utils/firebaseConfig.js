@@ -1,73 +1,93 @@
-import { initializeApp } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { initializeApp, getApps } from 'firebase/app';
+import { initializeAuth, getAuth, getReactNativePersistence } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes } from 'firebase/storage';
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+} from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Firebase configuration object
 const firebaseConfig = {
-  apiKey: "AIzaSyCoWztCI0SkAOewUPjjYFsJ-t9Htcgd7Eg",
+  apiKey: "AIzaSyDY0shv_Jupv3m1a-FRzeSB3oyviEWZvjo",
   authDomain: "gameplan-be6a8.firebaseapp.com",
   projectId: "gameplan-be6a8",
-  storageBucket: "gameplan-be6a8.appspot.com",
+  storageBucket: "gameplan-be6a8.firebasestorage.app",
   messagingSenderId: "695994204932",
   appId: "1:695994204932:android:6ccc6ef7dc600518738651",
-  measurementId: "G-788DS1JWN5"
+  measurementId: "G-788DS1JWN5",
 };
 
-// Initialize Firebase app
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase app (check if it has already been initialized)
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
 // Initialize Firebase Auth with persistence
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+export const auth =
+  getApps().length === 0
+    ? initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage),
+      })
+    : getAuth(app);
 
-// Export Firebase Firestore and Storage services
+// Initialize Firestore and Storage
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 // Firestore Functions
 
-// Add Trainer Data
+/**
+ * Add Trainer Data
+ * @param {Object} trainerData - Trainer data to be added
+ */
 export const addTrainer = async (trainerData) => {
   try {
-    await addDoc(collection(db, "trainers"), trainerData);
-    console.log("Trainer added successfully!");
+    const trainerRef = await addDoc(collection(db, "trainers"), trainerData);
+    console.log("Trainer added successfully with ID:", trainerRef.id);
   } catch (error) {
     console.error("Error adding trainer:", error.message);
-  }
-};
-
-// Add Student Data
-export const addStudent = async (studentData) => {
-  try {
-    await addDoc(collection(db, "students"), studentData);
-    console.log("Student added successfully!");
-  } catch (error) {
-    console.error("Error adding student:", error.message);
-  }
-};
-
-// Fetch All Trainers
-export const fetchTrainers = async () => {
-  try {
-    const querySnapshot = await getDocs(collection(db, "trainers"));
-    const trainers = [];
-    querySnapshot.forEach((doc) => trainers.push({ id: doc.id, ...doc.data() }));
-    return trainers;
-  } catch (error) {
-    console.error("Error fetching trainers:", error.message);
     throw error;
   }
 };
 
-// Fetch All Students
-export const fetchStudents = async () => {
+/**
+ * Add Student Data
+ * @param {string} trainerId - Trainer ID to link the student
+ * @param {Object} studentData - Student data to be added
+ */
+export const addStudent = async (trainerId, studentData) => {
   try {
-    const querySnapshot = await getDocs(collection(db, "students"));
-    const students = [];
-    querySnapshot.forEach((doc) => students.push({ id: doc.id, ...doc.data() }));
+    const studentRef = await addDoc(
+      collection(db, "trainers", trainerId, "students"),
+      studentData
+    );
+    console.log("Student added successfully with ID:", studentRef.id);
+  } catch (error) {
+    console.error("Error adding student:", error.message);
+    throw error;
+  }
+};
+
+/**
+ * Fetch All Students for a Trainer
+ * @param {string} trainerId - Trainer ID to fetch students
+ * @returns {Array} List of students
+ */
+export const fetchStudentsForTrainer = async (trainerId) => {
+  try {
+    const studentsSnapshot = await getDocs(
+      collection(db, "trainers", trainerId, "students")
+    );
+    const students = studentsSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
     return students;
   } catch (error) {
     console.error("Error fetching students:", error.message);
@@ -75,49 +95,43 @@ export const fetchStudents = async () => {
   }
 };
 
-// Update Trainer Data
-export const updateTrainer = async (trainerId, updatedData) => {
+/**
+ * Update Student Data
+ * @param {string} trainerId - Trainer ID
+ * @param {string} studentId - Student ID
+ * @param {Object} updatedData - Updated student data
+ */
+export const updateStudent = async (trainerId, studentId, updatedData) => {
   try {
-    const trainerDoc = doc(db, "trainers", trainerId);
-    await updateDoc(trainerDoc, updatedData);
-    console.log("Trainer updated successfully!");
-  } catch (error) {
-    console.error("Error updating trainer:", error.message);
-  }
-};
-
-// Update Student Data
-export const updateStudent = async (studentId, updatedData) => {
-  try {
-    const studentDoc = doc(db, "students", studentId);
+    const studentDoc = doc(db, "trainers", trainerId, "students", studentId);
     await updateDoc(studentDoc, updatedData);
     console.log("Student updated successfully!");
   } catch (error) {
     console.error("Error updating student:", error.message);
+    throw error;
   }
 };
 
-// Delete Trainer
-export const deleteTrainer = async (trainerId) => {
+/**
+ * Delete Student
+ * @param {string} trainerId - Trainer ID
+ * @param {string} studentId - Student ID
+ */
+export const deleteStudent = async (trainerId, studentId) => {
   try {
-    await deleteDoc(doc(db, "trainers", trainerId));
-    console.log("Trainer deleted successfully!");
-  } catch (error) {
-    console.error("Error deleting trainer:", error.message);
-  }
-};
-
-// Delete Student
-export const deleteStudent = async (studentId) => {
-  try {
-    await deleteDoc(doc(db, "students", studentId));
+    await deleteDoc(doc(db, "trainers", trainerId, "students", studentId));
     console.log("Student deleted successfully!");
   } catch (error) {
     console.error("Error deleting student:", error.message);
+    throw error;
   }
 };
 
-// Upload File to Firebase Storage
+/**
+ * Upload File to Firebase Storage
+ * @param {Object} file - File object with `uri` and `name`
+ * @returns {string} File's public URL
+ */
 export const uploadFile = async (file) => {
   try {
     // Convert the file URI to a Blob
@@ -130,10 +144,11 @@ export const uploadFile = async (file) => {
     // Upload the file to Firebase Storage
     const snapshot = await uploadBytes(storageRef, blob);
 
-    console.log("File uploaded successfully:", snapshot);
+    // Get the file's public URL
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    console.log("File uploaded successfully:", downloadURL);
 
-    // Return the file's full path
-    return snapshot.metadata.fullPath;
+    return downloadURL;
   } catch (error) {
     console.error("Error uploading file:", error.message);
     throw error;

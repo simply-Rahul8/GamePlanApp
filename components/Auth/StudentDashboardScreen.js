@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,37 +6,106 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Alert,
 } from 'react-native';
 import { Checkbox } from 'react-native-paper';
 import { Calendar } from 'react-native-calendars';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
+import { getDistance } from 'geolib';
+import { db } from '../../utils/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 
-export default function StudentDashboardScreen({ navigation }) {
+export default function StudentDashboardScreen({ navigation, route }) {
+  const [tasks, setTasks] = useState({ Exercise: [], Practice: [] });
   const [selectedToggle, setSelectedToggle] = useState('Exercise');
-  const [attendanceMarked, setAttendanceMarked] = useState(false);
-  const [tasks, setTasks] = useState({
-    Exercise: [
-      { id: '1', name: 'Push-ups', completed: false },
-      { id: '2', name: 'Sit-ups', completed: false },
-      { id: '3', name: 'Running', completed: false },
-      { id: '4', name: 'Stretching', completed: false },
-    ],
-    Practice: [
-      { id: '1', name: 'Cover Drive', completed: false },
-      { id: '2', name: 'Catching Practice', completed: false },
-      { id: '3', name: 'Pull Shot', completed: false },
-      { id: '4', name: 'Bowling Yorkers', completed: false },
-    ],
-  });
   const [attendanceDates, setAttendanceDates] = useState({});
   const [streak, setStreak] = useState(0);
+  const [attendanceMarked, setAttendanceMarked] = useState(false);
+  const [isInTargetLocation, setIsInTargetLocation] = useState(false);
 
-  // Dummy student profile data
-  const studentProfile = {
-    name: 'Oliver Smith',
-    id: '123456',
-    image: 'https://via.placeholder.com/150',
-    sport: 'Cricket',
+  // Safely access studentID from route params
+  const studentID = route.params?.studentID;
+  const [studentProfile, setStudentProfile] = useState(null);
+
+  useEffect(() => {
+    if (!studentID) {
+      Alert.alert('Error', 'Student ID is missing. Please log in again.');
+      navigation.goBack();
+      return;
+    }
+
+    const loadStudentProfile = async () => {
+      try {
+        // Fetch student profile from Firestore
+        const studentDoc = await getDoc(doc(db, 'students', studentID));
+        if (studentDoc.exists()) {
+          setStudentProfile(studentDoc.data());
+        } else {
+          Alert.alert('Error', 'Student profile not found.');
+        }
+      } catch (error) {
+        console.error('Error fetching student profile:', error);
+        Alert.alert('Error', 'Failed to fetch student profile.');
+      }
+    };
+
+    const loadTasksAndAttendance = async () => {
+      const storedTasks = await AsyncStorage.getItem('tasks');
+      const storedAttendanceDates = await AsyncStorage.getItem('attendanceDates');
+      const storedStreak = await AsyncStorage.getItem('streak');
+
+      if (storedTasks) setTasks(JSON.parse(storedTasks));
+      if (storedAttendanceDates) setAttendanceDates(JSON.parse(storedAttendanceDates));
+      if (storedStreak) setStreak(parseInt(storedStreak, 10));
+    };
+
+    loadStudentProfile();
+    loadTasksAndAttendance();
+  }, [studentID]);
+
+  useEffect(() => {
+    if (studentProfile) {
+      const fetchTrainerLocation = async () => {
+        try {
+          if (studentProfile?.trainerID) {
+            const trainerDoc = await getDoc(doc(db, 'trainers', studentProfile.trainerID));
+            if (trainerDoc.exists()) {
+              const { location } = trainerDoc.data();
+              if (location) {
+                checkLocation(location.latitude, location.longitude, location.radius);
+              }
+            } else {
+              Alert.alert('Error', 'Trainer data not found.');
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching trainer location:', error);
+        }
+      };
+
+      fetchTrainerLocation();
+    }
+  }, [studentProfile]);
+
+  const checkLocation = async (latitude, longitude, radius) => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission Denied',
+        'Location permissions are required to mark attendance.'
+      );
+      return;
+    }
+
+    const location = await Location.getCurrentPositionAsync({});
+    const distance = getDistance(
+      { latitude: location.coords.latitude, longitude: location.coords.longitude },
+      { latitude, longitude }
+    );
+
+    setIsInTargetLocation(distance <= radius);
   };
 
   const toggleTaskCompletion = (type, id) => {
@@ -44,44 +113,65 @@ export default function StudentDashboardScreen({ navigation }) {
       const updatedTasks = prevTasks[type].map((task) =>
         task.id === id ? { ...task, completed: !task.completed } : task
       );
-      return { ...prevTasks, [type]: updatedTasks };
+      const newTasks = { ...prevTasks, [type]: updatedTasks };
+      AsyncStorage.setItem('tasks', JSON.stringify(newTasks));
+      return newTasks;
     });
   };
 
   const handleAttendance = () => {
-    const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
-    if (!attendanceMarked) {
+    const today = new Date().toISOString().split('T')[0];
+    if (!attendanceMarked && isInTargetLocation) {
       setAttendanceMarked(true);
-      setStreak(streak + 1); // Increment streak
 
-      // Mark today's date in the calendar
-      setAttendanceDates((prevDates) => ({
-        ...prevDates,
+      const updatedDates = {
+        ...attendanceDates,
         [today]: {
           selected: true,
           marked: true,
           selectedColor: '#DA0037',
         },
-      }));
+      };
+      setAttendanceDates(updatedDates);
+
+      AsyncStorage.setItem('attendanceDates', JSON.stringify(updatedDates));
+      Alert.alert('Attendance', 'Attendance marked successfully!');
+    } else {
+      Alert.alert('Error', 'You must be in the target location to mark attendance.');
     }
   };
+
+  const saveProgress = async () => {
+    if (
+      tasks.Exercise.every((task) => task.completed) &&
+      tasks.Practice.every((task) => task.completed)
+    ) {
+      setStreak((prevStreak) => prevStreak + 1);
+      try {
+        await AsyncStorage.setItem('streak', (streak + 1).toString());
+        Alert.alert('Success', 'Progress saved successfully!');
+      } catch (error) {
+        Alert.alert('Error', 'Failed to save progress.');
+      }
+    }
+  };
+
+  if (!studentProfile) {
+    return (
+      <View style={styles.loaderContainer}>
+        <Text style={styles.loaderText}>Loading student profile...</Text>
+      </View>
+    );
+  }
 
   return (
     <LinearGradient colors={['#171717', '#444444']} style={styles.gradient}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Header */}
-        <TouchableOpacity
-          style={styles.header}
-          onPress={() =>
-            navigation.navigate('StudentProfile', { student: studentProfile })
-          }
-        >
-          <Image
-            source={{ uri: studentProfile.image }}
-            style={styles.profileImage}
-          />
+        <TouchableOpacity style={styles.header}>
+          <Image source={{ uri: studentProfile.image }} style={styles.profileImage} />
           <Text style={styles.profileName}>{studentProfile.name}</Text>
-          <Text style={styles.profileId}>ID: {studentProfile.id}</Text>
+          <Text style={styles.profileId}>ID: {studentID}</Text>
         </TouchableOpacity>
 
         {/* Streak Badge */}
@@ -93,29 +183,20 @@ export default function StudentDashboardScreen({ navigation }) {
         <TouchableOpacity
           style={[
             styles.attendanceButton,
-            attendanceMarked && styles.attendanceButtonMarked,
+            (!isInTargetLocation || attendanceMarked) && styles.attendanceButtonDisabled,
           ]}
           onPress={handleAttendance}
-          disabled={attendanceMarked}
+          disabled={!isInTargetLocation || attendanceMarked}
         >
           <Text
             style={[
               styles.attendanceButtonText,
-              attendanceMarked && styles.attendanceButtonTextMarked,
+              (!isInTargetLocation || attendanceMarked) && styles.attendanceButtonTextDisabled,
             ]}
           >
             {attendanceMarked ? 'Attendance Marked' : 'Mark Attendance'}
           </Text>
         </TouchableOpacity>
-
-        {/* Sport Name */}
-        <View style={styles.sportContainer}>
-          <Image
-            source={{ uri: 'https://via.placeholder.com/50' }}
-            style={styles.sportImage}
-          />
-          <Text style={styles.sportName}>{studentProfile.sport}</Text>
-        </View>
 
         {/* Toggle Buttons */}
         <View style={styles.toggleContainer}>
@@ -154,7 +235,8 @@ export default function StudentDashboardScreen({ navigation }) {
         </View>
 
         {/* Tasks Section */}
-        {tasks[selectedToggle].map((item) => (
+        <Text style={styles.sectionTitle}>{selectedToggle}</Text>
+        {tasks[selectedToggle]?.map((item) => (
           <View key={item.id} style={styles.taskItem}>
             <Checkbox
               status={item.completed ? 'checked' : 'unchecked'}
@@ -183,8 +265,31 @@ export default function StudentDashboardScreen({ navigation }) {
         </View>
 
         {/* Save Progress Button */}
-        <TouchableOpacity style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Save Progress</Text>
+        <TouchableOpacity
+          style={[
+            styles.saveButton,
+            !tasks.Exercise.every((task) => task.completed) ||
+            !tasks.Practice.every((task) => task.completed)
+              ? styles.saveButtonDisabled
+              : {},
+          ]}
+          onPress={saveProgress}
+          disabled={
+            !tasks.Exercise.every((task) => task.completed) ||
+            !tasks.Practice.every((task) => task.completed)
+          }
+        >
+          <Text
+            style={[
+              styles.saveButtonText,
+              !tasks.Exercise.every((task) => task.completed) ||
+              !tasks.Practice.every((task) => task.completed)
+                ? styles.saveButtonTextDisabled
+                : {},
+            ]}
+          >
+            Save Progress
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </LinearGradient>
@@ -193,91 +298,20 @@ export default function StudentDashboardScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
-  container: {
-    flexGrow: 1,
-    padding: 20,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 2,
-    borderColor: '#DA0037',
-    marginBottom: 10,
-  },
-  profileName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  profileId: {
-    fontSize: 16,
-    color: '#CCCCCC',
-  },
-  streakBadge: {
-    backgroundColor: '#1E1E1E',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  streakText: {
-    color: '#DA0037',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  calendarContainer: {
-    marginBottom: 20,
-  },
-  attendanceButton: {
-    backgroundColor: '#DA0037',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  attendanceButtonMarked: {
-    backgroundColor: '#1E1E1E',
-    borderWidth: 2,
-    borderColor: '#DA0037',
-  },
-  attendanceButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  attendanceButtonTextMarked: {
-    color: '#DA0037',
-  },
-  sportContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1E1E1E',
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 20,
-  },
-  sportImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  sportName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  toggleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 20,
-  },
+  container: { flexGrow: 1, padding: 20 },
+  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loaderText: { fontSize: 16, color: '#FFFFFF' },
+  header: { alignItems: 'center', marginBottom: 20 },
+  profileImage: { width: 100, height: 100, borderRadius: 50 },
+  profileName: { fontSize: 20, color: '#FFFFFF' },
+  profileId: { fontSize: 16, color: '#CCCCCC' },
+  streakBadge: { alignItems: 'center', marginBottom: 20 },
+  streakText: { color: '#DA0037', fontSize: 16 },
+  attendanceButton: { backgroundColor: '#DA0037', padding: 15, borderRadius: 10 },
+  attendanceButtonDisabled: { backgroundColor: '#CCCCCC' },
+  attendanceButtonText: { color: '#FFFFFF', textAlign: 'center' },
+  attendanceButtonTextDisabled: { color: '#000000' },
+  toggleContainer: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 },
   toggleButton: {
     flex: 1,
     alignItems: 'center',
@@ -286,42 +320,14 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginHorizontal: 5,
   },
-  activeToggleButton: {
-    backgroundColor: '#DA0037',
-  },
-  toggleText: {
-    fontSize: 16,
-    color: '#CCCCCC',
-  },
-  activeToggleText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  taskItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: '#1E1E1E',
-    borderRadius: 10,
-  },
-  taskName: {
-    marginLeft: 10,
-    fontSize: 16,
-    color: '#FFFFFF',
-  },
-  saveButton: {
-    marginTop: 20,
-    backgroundColor: '#E0E0E0',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#DA0037',
-  },
-  saveButtonText: {
-    color: '#171717',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+  activeToggleButton: { backgroundColor: '#DA0037' },
+  toggleText: { fontSize: 16, color: '#CCCCCC' },
+  activeToggleText: { color: '#FFFFFF', fontWeight: 'bold' },
+  taskItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, padding: 10, backgroundColor: '#1E1E1E', borderRadius: 10 },
+  taskName: { marginLeft: 10, fontSize: 16, color: '#FFFFFF' },
+  calendarContainer: { marginBottom: 20 },
+  saveButton: { backgroundColor: '#DA0037', paddingVertical: 15, borderRadius: 10, alignItems: 'center' },
+  saveButtonDisabled: { backgroundColor: '#1E1E1E', borderWidth: 1, borderColor: '#CCCCCC' },
+  saveButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
+  saveButtonTextDisabled: { color: '#CCCCCC' },
 });

@@ -1,25 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
-import { uploadFile } from '../../utils/firebaseConfig'; 
+import { db } from '../../utils/firebaseConfig'; // Import Firestore instance
+import { doc, getDoc } from 'firebase/firestore';
 
-export default function TrainerProfileScreen({ navigation }) {
+export default function TrainerProfileScreen({ navigation, route }) {
+  const { trainerID } = route.params || {}; // Retrieve trainerID from route params
   const [profileData, setProfileData] = useState({
-    profileImage: 'https://via.placeholder.com/150',
-    fullName: 'James Smith',
-    age: '35',
-    trainingCenter: 'Elite Fitness',
-    sportSpecialty: 'Basketball',
-    mobile: '+1 234 567 890',
-    email: 'james.smith@elitefitness.com',
-    biography: 'James Smith is a dedicated sports trainer with over 10 years of experience in the fitness industry...',
+    profileImage: 'https://via.placeholder.com/150', // Default profile image
   });
 
-  const updateProfileData = (updatedData) => {
-    setProfileData(updatedData);
-  };
+  useEffect(() => {
+    if (!trainerID) {
+      Alert.alert('Error', 'Trainer ID is missing. Please log in again.');
+      navigation.goBack();
+      return;
+    }
+
+    const fetchTrainerData = async () => {
+      try {
+        const trainerDocRef = doc(db, 'trainers', trainerID); // Reference to trainer document in Firestore
+        const trainerDoc = await getDoc(trainerDocRef);
+
+        if (trainerDoc.exists()) {
+          setProfileData((prev) => ({
+            ...prev,
+            ...trainerDoc.data(),
+          }));
+        } else {
+          Alert.alert('Error', 'Trainer data not found.');
+        }
+      } catch (error) {
+        console.error('Error fetching trainer data:', error.message);
+        Alert.alert('Error', 'Failed to fetch trainer data.');
+      }
+    };
+
+    fetchTrainerData();
+  }, [trainerID]);
 
   const handleImageUpload = async () => {
     try {
@@ -29,7 +49,8 @@ export default function TrainerProfileScreen({ navigation }) {
         return;
       }
 
-      const uploadedPath = await uploadFile(result);
+      // TODO: Replace this with your Firebase file upload logic
+      const uploadedPath = result.uri; // Assuming this is the uploaded image URL
       setProfileData((prev) => ({ ...prev, profileImage: uploadedPath }));
       Alert.alert('Success', 'Profile image updated successfully!');
     } catch (error) {
@@ -47,7 +68,7 @@ export default function TrainerProfileScreen({ navigation }) {
           onPress={() =>
             navigation.navigate('SettingsScreen', {
               profileData,
-              updateProfileData,
+              updateProfileData: setProfileData,
             })
           }
         >
@@ -57,27 +78,40 @@ export default function TrainerProfileScreen({ navigation }) {
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <TouchableOpacity onPress={handleImageUpload}>
-            <Image style={styles.profileImage} source={{ uri: profileData.profileImage }} />
+            <Image
+              style={styles.profileImage}
+              source={{
+                uri: profileData.profileImage || 'https://via.placeholder.com/150',
+              }}
+            />
           </TouchableOpacity>
-          <Text style={styles.profileName}>{profileData.fullName}</Text>
-          <Text style={styles.profileId}>@jamesmith</Text>
+          <Text style={styles.profileName}>{profileData.name || 'Trainer Name'}</Text>
+          <Text style={styles.profileId}>@{profileData.trainerID || 'TrainerID'}</Text>
         </View>
 
         {/* Personal Information */}
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>Personal Information</Text>
-          <Text style={styles.infoText}>Trainer ID: 12345</Text>
-          <Text style={styles.infoText}>Age: {profileData.age}</Text>
-          <Text style={styles.infoText}>Training Center: {profileData.trainingCenter}</Text>
-          <Text style={styles.infoText}>Sport Specialty: {profileData.sportSpecialty}</Text>
-          <Text style={styles.infoText}>Mobile: {profileData.mobile}</Text>
-          <Text style={styles.infoText}>Email: {profileData.email}</Text>
+          <Text style={styles.infoText}>
+            Trainer ID: {profileData.trainerID || 'N/A'}
+          </Text>
+          <Text style={styles.infoText}>Age: {profileData.age || 'N/A'}</Text>
+          <Text style={styles.infoText}>
+            Training Center: {profileData.trainingCenter || 'N/A'}
+          </Text>
+          <Text style={styles.infoText}>
+            Sport Specialty: {profileData.sports || 'N/A'}
+          </Text>
+          <Text style={styles.infoText}>Mobile: {profileData.mobile || 'N/A'}</Text>
+          <Text style={styles.infoText}>Email: {profileData.email || 'N/A'}</Text>
         </View>
 
         {/* Biography Section */}
         <View style={styles.bioSection}>
           <Text style={styles.bioTitle}>Biography</Text>
-          <Text style={styles.bioText}>{profileData.biography}</Text>
+          <Text style={styles.bioText}>
+            {profileData.aboutMe || 'No biography available. Please update your profile.'}
+          </Text>
         </View>
       </View>
     </LinearGradient>

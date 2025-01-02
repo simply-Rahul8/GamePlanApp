@@ -113,10 +113,11 @@ export default function LoginScreen({ navigation }) {
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 placeholderTextColor="#CCCCCC"
+                
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Text style={styles.showPassword}>
-                  {showPassword ? '🤫' : '👁️‍🗨️'}
+                  {showPassword ? '🙈' : '👁️‍🗨️'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#555555',
     borderRadius: 10,
-    padding: 12,
+    padding: 3,
     backgroundColor: '#1E1E1E',
     marginBottom: 20,
     width: '100%',

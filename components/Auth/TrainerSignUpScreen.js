@@ -8,16 +8,16 @@ import {
   ScrollView,
   Alert,
   Platform,
+  Linking,
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { addDoc, collection } from 'firebase/firestore';
+import { db } from '../../utils/firebaseConfig'; // Firestore instance
 
 export default function TrainerSignUpScreen({ navigation }) {
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
-  const [trainingCenter, setTrainingCenter] = useState('');
   const [sports, setSports] = useState('');
   const [mobile, setMobile] = useState('');
   const [email, setEmail] = useState('');
@@ -26,23 +26,32 @@ export default function TrainerSignUpScreen({ navigation }) {
   const [gender, setGender] = useState('');
   const [aboutMe, setAboutMe] = useState('');
   const [experience, setExperience] = useState('');
-  const [trainerID, setTrainerID] = useState('TR12345');
-  const [region, setRegion] = useState({
-    latitude: 37.78825,
-    longitude: -122.4324,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  });
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [trainerID, setTrainerID] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [radius, setRadius] = useState('');
 
+  // Generate a new Trainer ID
   const handleGenerateTrainerID = () => {
-    const newID = 'TR' + Math.floor(10000 + Math.random() * 90000);
+    const newID = 'TR' + Math.floor(100000 + Math.random() * 900000);
     setTrainerID(newID);
     Alert.alert('Trainer ID Generated', `Your Trainer ID: ${newID}`);
   };
 
-  const handleSignUp = () => {
-    if (!name || !age || !sports || !gender || !email || !password || !confirmPassword) {
+  // Handle Trainer Signup
+  const handleSignUp = async () => {
+    if (
+      !name ||
+      !age ||
+      !sports ||
+      !gender ||
+      !email ||
+      !password ||
+      !confirmPassword ||
+      !latitude ||
+      !longitude ||
+      !radius
+    ) {
       Alert.alert('Error', 'Please fill in all mandatory fields.');
       return;
     }
@@ -50,8 +59,34 @@ export default function TrainerSignUpScreen({ navigation }) {
       Alert.alert('Error', 'Passwords do not match.');
       return;
     }
-    Alert.alert('Success', 'Trainer account created successfully!');
-    navigation.navigate('Login');
+
+    try {
+      const trainerData = {
+        name,
+        age,
+        sports,
+        mobile,
+        email,
+        gender,
+        aboutMe,
+        experience,
+        trainerID,
+        location: {
+          latitude,
+          longitude,
+          radius,
+        },
+      };
+
+      // Save trainer data in Firestore
+      await addDoc(collection(db, 'trainers'), trainerData);
+
+      Alert.alert('Success', 'Trainer account created successfully!');
+      navigation.navigate('Login'); // Redirect to login screen
+    } catch (error) {
+      console.error('Error saving trainer data:', error.message);
+      Alert.alert('Error', 'Failed to create trainer account.');
+    }
   };
 
   return (
@@ -80,66 +115,51 @@ export default function TrainerSignUpScreen({ navigation }) {
           keyboardType="numeric"
         />
 
-        {/* Training Center */}
-        <Text style={styles.label}>Training Center</Text>
-        <GooglePlacesAutocomplete
-          placeholder="Search for training center"
-          minLength={2}
-          fetchDetails={true}
-          onPress={(data, details = null) => {
-            const { lat, lng } = details.geometry.location;
-            setTrainingCenter(data.description);
-            setRegion({
-              ...region,
-              latitude: lat,
-              longitude: lng,
-            });
-            setSelectedLocation({
-              latitude: lat,
-              longitude: lng,
-            });
-          }}
-          query={{
-            key: 'YOUR_GOOGLE_MAPS_API_KEY', // Replace with your API key
-            language: 'en',
-          }}
-          styles={{
-            textInput: [
-              styles.input,
-              { color: '#FFFFFF', placeholderTextColor: '#FFFFFF' },
-            ],
-            listView: { backgroundColor: '#1E1E1E', borderRadius: 10 },
-          }}
-          textInputProps={{
-            placeholderTextColor: '#FFFFFF', // White placeholder text
-          }}
+        {/* Google Maps Button */}
+        <TouchableOpacity
+          style={styles.mapButton}
+          onPress={() => Linking.openURL('https://www.google.com/maps')}
+        >
+          <Text style={styles.mapButtonText}>Know Your Location</Text>
+        </TouchableOpacity>
+
+        {/* Message below the button */}
+        <Text style={styles.mapMessage}>
+          Click on the button above, search for your location, and long-press the red locator icon to find the latitude and longitude of your training center.
+        </Text>
+
+        {/* Latitude */}
+        <Text style={styles.label}>Latitude</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter latitude"
+          placeholderTextColor="#CCCCCC"
+          value={latitude}
+          onChangeText={setLatitude}
+          keyboardType="numeric"
         />
 
-        {/* Map */}
-        <View style={styles.mapContainer}>
-          <MapView
-            style={styles.map}
-            region={region}
-            onPress={(e) =>
-              setSelectedLocation(e.nativeEvent.coordinate)
-            }
-          >
-            {selectedLocation && (
-              <Marker coordinate={selectedLocation} />
-            )}
-          </MapView>
-        </View>
-        <TouchableOpacity
-          style={styles.doneButton}
-          onPress={() =>
-            Alert.alert(
-              'Location Selected',
-              `Latitude: ${selectedLocation?.latitude}, Longitude: ${selectedLocation?.longitude}`
-            )
-          }
-        >
-          <Text style={styles.doneButtonText}>Done</Text>
-        </TouchableOpacity>
+        {/* Longitude */}
+        <Text style={styles.label}>Longitude</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter longitude"
+          placeholderTextColor="#CCCCCC"
+          value={longitude}
+          onChangeText={setLongitude}
+          keyboardType="numeric"
+        />
+
+        {/* Radius */}
+        <Text style={styles.label}>Radius / Coverage Area (in meters)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter coverage area radius"
+          placeholderTextColor="#CCCCCC"
+          value={radius}
+          onChangeText={setRadius}
+          keyboardType="numeric"
+        />
 
         {/* Sports */}
         <Text style={styles.label}>Sports</Text>
@@ -289,6 +309,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
+  mapButton: {
+    backgroundColor: '#DA0037',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  mapButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  mapMessage: {
+    fontSize: 14,
+    color: '#CCCCCC',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
   label: {
     fontSize: 16,
     color: '#EDEDED',
@@ -314,31 +352,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     height: Platform.OS === 'android' ? 50 : undefined,
   },
-  mapContainer: {
-    height: 300,
-    marginBottom: 20,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  map: {
-    flex: 1,
-  },
-  doneButton: {
-    backgroundColor: '#DA0037',
-    padding: 10,
-    borderRadius: 20,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  doneButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  disabledInput: {
-    backgroundColor: '#333333',
-    color: '#AAAAAA',
-  },
   generateButton: {
     backgroundColor: '#DA0037',
     padding: 15,
@@ -361,5 +374,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  disabledInput: {
+    backgroundColor: '#333333',
+    color: '#AAAAAA',
   },
 });

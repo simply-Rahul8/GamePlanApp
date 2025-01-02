@@ -8,19 +8,34 @@ import {
   Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../../utils/firebaseConfig'; // Ensure your Firebase config is correctly set up
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
 
-  const handleResetPassword = () => {
-    if (!email || !password) {
+  const handleResetPassword = async () => {
+    if (!email || !newPassword) {
       Alert.alert('Error', 'Please fill in all fields.');
       return;
     }
-    Alert.alert('Success', 'Password reset successful! You can now log in with your new password.');
-    // Add backend reset password logic here
+
+    try {
+      // Send password reset email
+      await sendPasswordResetEmail(auth, email);
+
+      Alert.alert(
+        'Success',
+        'A password reset link has been sent to your email. Please check your inbox to complete the process.'
+      );
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      Alert.alert(
+        'Error',
+        'Failed to send password reset email. Please check the email address and try again.'
+      );
+    }
   };
 
   return (
@@ -32,7 +47,7 @@ export default function ForgotPasswordScreen() {
         <View style={styles.header}>
           <Text style={styles.heading}>Forgot Password</Text>
           <Text style={styles.subheading}>
-            Let’s help you reset your password and get back on track!
+            Enter your email and we’ll send you instructions to reset your password.
           </Text>
         </View>
 
@@ -52,7 +67,7 @@ export default function ForgotPasswordScreen() {
           </View>
         </View>
 
-        {/* Password Input */}
+        {/* New Password Input */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>New Password</Text>
           <View style={styles.inputContainer}>
@@ -60,13 +75,10 @@ export default function ForgotPasswordScreen() {
               style={styles.input}
               placeholder="Enter new password"
               placeholderTextColor="#666"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              secureTextEntry
             />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Text style={styles.showPassword}>{showPassword ? "🙈" : "👁️"}</Text>
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -118,23 +130,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#444444',
     borderRadius: 10,
-    padding: 15,
+    padding: 6,
     backgroundColor: '#444444',
   },
   input: {
-    flex: 1,
     fontSize: 16,
     color: '#EDEDED',
-  },
-  showPassword: {
-    fontSize: 16,
-    color: '#DA0037',
-    marginLeft: 10,
+    paddingHorizontal: 10,
   },
   resetButton: {
     backgroundColor: '#DA0037',

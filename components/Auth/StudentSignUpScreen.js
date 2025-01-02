@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
+import { db } from '../../utils/firebaseConfig'; // Import Firestore instance
+import { addDoc, collection } from 'firebase/firestore'; // Import Firestore functions
 
 export default function StudentSignUpScreen({ navigation }) {
   const [fullName, setFullName] = useState('');
@@ -23,18 +25,50 @@ export default function StudentSignUpScreen({ navigation }) {
   const [sport, setSport] = useState('');
   const [gender, setGender] = useState('');
   const [emergencyContact, setEmergencyContact] = useState('');
+  const [studentID, setStudentID] = useState('');
 
-  const handleSignUp = () => {
-    if (!fullName || !age || !sport || !gender || !email || !password || !confirmPassword) {
+  const generateStudentID = () => {
+    const generatedID = Math.floor(100000 + Math.random() * 900000).toString();
+    setStudentID(generatedID);
+    Alert.alert('Student ID Generated', `Your Student ID is: ${generatedID}`);
+  };
+
+  const handleSignUp = async () => {
+    if (!fullName || !age || !sport || !gender || !email || !password || !confirmPassword || !trainerID || !studentID) {
       Alert.alert('Error', 'Please fill in all mandatory fields.');
       return;
     }
+
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match.');
       return;
     }
-    Alert.alert('Success', 'Student account created successfully!');
-    navigation.navigate('Login'); // Redirect to login screen after successful sign-up
+
+    const studentData = {
+      name: fullName,
+      age: parseInt(age, 10),
+      email,
+      password,
+      trainerID,
+      studentID,
+      address,
+      sport,
+      gender,
+      emergencyContact,
+      image: 'https://via.placeholder.com/150', // Default profile image
+    };
+
+    try {
+      // Save student data to Firestore
+      const studentsCollection = collection(db, 'students');
+      await addDoc(studentsCollection, studentData);
+
+      Alert.alert('Success', 'Student account created successfully!');
+      navigation.navigate('Login'); // Redirect to login screen after successful sign-up
+    } catch (error) {
+      console.error('Error saving student data:', error);
+      Alert.alert('Error', 'Failed to create account. Please try again.');
+    }
   };
 
   return (
@@ -126,6 +160,21 @@ export default function StudentSignUpScreen({ navigation }) {
           value={trainerID}
           onChangeText={setTrainerID}
         />
+
+        {/* Student ID */}
+        <Text style={styles.label}>Student ID</Text>
+        <View style={styles.studentIDContainer}>
+          <TextInput
+            style={[styles.input, { flex: 1, backgroundColor: '#555555', color: '#AAAAAA' }]}
+            value={studentID}
+            editable={false}
+            placeholder="Student ID will be generated"
+            placeholderTextColor="#CCCCCC"
+          />
+          <TouchableOpacity style={styles.generateButton} onPress={generateStudentID}>
+            <Text style={styles.generateButtonText}>Generate</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Address */}
         <Text style={styles.label}>Address</Text>
@@ -232,6 +281,22 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     backgroundColor: '#1E1E1E',
     color: '#FFFFFF',
+  },
+  studentIDContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  generateButton: {
+    backgroundColor: '#DA0037',
+    paddingHorizontal: 11,
+    paddingVertical: 8,
+    borderRadius: 10,
+    marginLeft: 10,
+  },
+  generateButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
   pickerContainer: {
     borderWidth: 1,
