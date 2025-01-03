@@ -12,34 +12,42 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { db } from '../../utils/firebaseConfig';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export default function TrainerDashboardScreen({ navigation, route }) {
-  const { trainerData } = route.params || {}; // Fetch trainer data from route params
-  const trainerID = trainerData?.trainerID; // Trainer ID from the passed trainerData
+  const { trainerData } = route.params || {};
+  const trainerID = trainerData?.trainerID || '';
   const [students, setStudents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    if (!trainerID) {
-      setErrorMessage('Trainer ID is missing. Please log in again.');
-      return;
-    }
-
     const fetchStudents = async () => {
       try {
-        const studentsRef = collection(db, 'trainers', trainerID, 'students');
-        const studentsSnapshot = await getDocs(studentsRef);
-        const studentsData = studentsSnapshot.docs.map((doc) => ({
+        if (!trainerID) {
+          setErrorMessage('Trainer ID is missing. Please log in again.');
+          return;
+        }
+
+        // Firestore query to fetch students with matching trainerID
+        const studentsRef = collection(db, 'students');
+        const q = query(studentsRef, where('trainerID', '==', trainerID));
+        const querySnapshot = await getDocs(q);
+
+        const studentsData = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
 
-        setStudents(studentsData);
+        if (studentsData.length === 0) {
+          setErrorMessage('No students found. Ask students to join using your Trainer ID.');
+        } else {
+          setStudents(studentsData);
+          setErrorMessage('');
+        }
       } catch (error) {
         console.error('Error fetching students:', error);
-        setErrorMessage('Failed to fetch students.');
+        setErrorMessage('Failed to fetch students. Please try again later.');
       }
     };
 
@@ -71,20 +79,6 @@ export default function TrainerDashboardScreen({ navigation, route }) {
     </TouchableOpacity>
   );
 
-  if (errorMessage) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{errorMessage}</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => navigation.navigate('Login')}
-        >
-          <Text style={styles.retryButtonText}>Go to Login</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   return (
     <LinearGradient colors={['#171717', '#444444']} style={styles.gradient}>
       <View style={styles.container}>
@@ -114,21 +108,17 @@ export default function TrainerDashboardScreen({ navigation, route }) {
         </View>
 
         <Text style={styles.sectionTitle}>Students List</Text>
-        {students.length === 0 ? (
-          <View style={styles.noStudentsContainer}>
-            <Text style={styles.noStudentsText}>No students joined yet.</Text>
-            <Text style={styles.noStudentsSubText}>
-              Ask students to join using your Trainer ID: {trainerID}
-            </Text>
+        {errorMessage && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{errorMessage}</Text>
           </View>
-        ) : (
-          <FlatList
-            data={filteredStudents}
-            keyExtractor={(item) => item.id}
-            renderItem={renderStudentCard}
-            contentContainerStyle={styles.studentList}
-          />
         )}
+        <FlatList
+          data={filteredStudents}
+          keyExtractor={(item) => item.id}
+          renderItem={renderStudentCard}
+          contentContainerStyle={styles.studentList}
+        />
       </View>
     </LinearGradient>
   );
@@ -138,35 +128,32 @@ const styles = StyleSheet.create({
   gradient: { flex: 1 },
   container: { flex: 1, paddingHorizontal: 20, paddingTop: 10 },
   errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#171717',
-  },
-  errorText: { fontSize: 18, color: '#DA0037', textAlign: 'center' },
-  retryButton: {
-    backgroundColor: '#DA0037',
-    padding: 10,
+    justifyContent: 'center',
+    padding: 20,
     marginTop: 20,
-    borderRadius: 5,
   },
-  retryButtonText: { color: '#FFFFFF', fontWeight: 'bold' },
+  errorText: { fontSize: 16, color: '#CCCCCC', textAlign: 'center' },
   profileHeader: { alignItems: 'center', marginBottom: 20 },
   profileTouchable: { alignItems: 'center' },
-  trainerImage: { width: 100, height: 100, borderRadius: 50, marginBottom: 5, borderWidth: 2, borderColor: '#DA0037' },
-  trainerName: { fontSize: 20, fontWeight: 'bold', color: '#FFFFFF', marginTop: 5 },
+  trainerImage: { width: 100, height: 100, borderRadius: 50, marginBottom: 10 },
+  trainerName: { fontSize: 20, fontWeight: 'bold', color: '#FFFFFF' },
   trainerId: { fontSize: 16, color: '#CCCCCC' },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1E1E1E', borderRadius: 20, padding: 10, marginBottom: 20 },
-  searchInput: { flex: 1, marginHorizontal: 10, color: '#FFFFFF', fontSize: 16 },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 20,
+    padding: 10,
+    marginBottom: 20,
+  },
+  searchInput: { flex: 1, color: '#FFFFFF', fontSize: 16 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#DA0037', marginBottom: 10 },
   studentList: { paddingBottom: 20 },
-  studentCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1E1E1E', borderRadius: 10, padding: 10, marginBottom: 15 },
-  studentImage: { width: 60, height: 60, borderRadius: 30, marginRight: 15, borderWidth: 1, borderColor: '#DA0037' },
+  studentCard: { flexDirection: 'row', alignItems: 'center', padding: 10, marginBottom: 15 },
+  studentImage: { width: 50, height: 50, borderRadius: 25, marginRight: 15 },
   studentDetails: { flex: 1 },
-  studentName: { fontSize: 16, fontWeight: 'bold', color: '#FFFFFF' },
+  studentName: { fontSize: 16, color: '#FFFFFF', fontWeight: 'bold' },
   studentRole: { fontSize: 14, color: '#CCCCCC' },
   studentID: { fontSize: 12, color: '#AAAAAA' },
-  noStudentsContainer: { alignItems: 'center', justifyContent: 'center', padding: 20, marginTop: 20, backgroundColor: '#1E1E1E', borderRadius: 10 },
-  noStudentsText: { fontSize: 16, fontWeight: 'bold', color: '#FFFFFF' },
-  noStudentsSubText: { fontSize: 14, color: '#CCCCCC', marginTop: 10, textAlign: 'center' },
 });

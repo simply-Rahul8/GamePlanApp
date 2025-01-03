@@ -2,23 +2,21 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  Image,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
   ScrollView,
+  StyleSheet,
   Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { uploadFile, db } from '../../utils/firebaseConfig';
+import { db } from '../../utils/firebaseConfig';
 import { updateDoc, doc } from 'firebase/firestore';
-import * as DocumentPicker from 'expo-document-picker';
 
 export default function SettingsScreen({ navigation, route }) {
   const profileData = route.params?.profileData || {};
   const updateProfileData = route.params?.updateProfileData || (() => {});
+  const trainerID = profileData.trainerID;
 
-  const [profileImage, setProfileImage] = useState(profileData.profileImage || '');
   const [fullName, setFullName] = useState(profileData.name || '');
   const [age, setAge] = useState(profileData.age || '');
   const [trainingCenter, setTrainingCenter] = useState(profileData.trainingCenter || '');
@@ -27,25 +25,8 @@ export default function SettingsScreen({ navigation, route }) {
   const [email, setEmail] = useState(profileData.email || '');
   const [biography, setBiography] = useState(profileData.aboutMe || '');
 
-  const trainerId = profileData.trainerID || 'TR12345';
-
-  const pickAndUploadImage = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({ type: 'image/*' });
-      if (result.type === 'cancel') return;
-
-      const uploadedPath = await uploadFile(result);
-      setProfileImage(uploadedPath);
-      Alert.alert('Success', 'Profile image updated successfully!');
-    } catch (error) {
-      console.error('Error uploading profile image:', error);
-      Alert.alert('Error', 'Failed to upload profile image.');
-    }
-  };
-
   const saveChanges = async () => {
     const updatedData = {
-      profileImage,
       name: fullName,
       age,
       trainingCenter,
@@ -56,9 +37,9 @@ export default function SettingsScreen({ navigation, route }) {
     };
 
     try {
-      const trainerDocRef = doc(db, 'trainers', trainerId);
+      const trainerDocRef = doc(db, 'trainers', trainerID);
       await updateDoc(trainerDocRef, updatedData);
-      updateProfileData(updatedData); // Dynamically update the Profile and Dashboard
+      updateProfileData(updatedData);
       Alert.alert('Success', 'Profile updated successfully!');
       navigation.goBack();
     } catch (error) {
@@ -70,11 +51,6 @@ export default function SettingsScreen({ navigation, route }) {
   return (
     <LinearGradient colors={['#171717', '#444444']} style={styles.gradient}>
       <ScrollView contentContainerStyle={styles.container}>
-        <TouchableOpacity style={styles.profileSection} onPress={pickAndUploadImage}>
-          <Image style={styles.profileImage} source={{ uri: profileImage }} />
-          <Text style={styles.profileName}>{fullName}</Text>
-        </TouchableOpacity>
-
         <Text style={styles.sectionTitle}>Personal Information</Text>
         <TextInput
           style={styles.input}
@@ -145,9 +121,6 @@ export default function SettingsScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   container: { flexGrow: 1, padding: 20 },
-  profileSection: { alignItems: 'center', marginBottom: 20 },
-  profileImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 10 },
-  profileName: { fontSize: 20, fontWeight: 'bold', color: '#FFFFFF' },
   sectionTitle: { fontSize: 18, color: '#DA0037', marginBottom: 10 },
   input: {
     backgroundColor: '#1E1E1E',
