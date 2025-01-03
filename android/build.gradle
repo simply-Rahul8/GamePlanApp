@@ -2,35 +2,22 @@
 
 buildscript {
     ext {
-        buildToolsVersion = findProperty('android.buildToolsVersion') ?: '35.0.0'
-        minSdkVersion = Integer.parseInt(findProperty('android.minSdkVersion') ?: '24')
-        compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '35')
-        targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '34')
-        kotlinVersion = findProperty('android.kotlinVersion') ?: '1.9.24'
-
+        buildToolsVersion = '35.0.0'
+        minSdkVersion = 24
+        compileSdkVersion = 35
+        targetSdkVersion = 34
+        kotlinVersion = '1.9.24'
         ndkVersion = "26.1.10909125"
     }
     repositories {
-<<<<<<< HEAD
         google()
         mavenCentral()
     }
     dependencies {
-        classpath('com.android.tools.build:gradle')
-        classpath('com.facebook.react:react-native-gradle-plugin')
-        classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
-=======
-        google() // Required for Firebase and Android tools
-        mavenCentral() // Central Maven repository
-    }
-    dependencies {
-        classpath('com.android.tools.build:gradle') // Android Gradle plugin
-        classpath('com.facebook.react:react-native-gradle-plugin') // React Native Gradle plugin
-        classpath('org.jetbrains.kotlin:kotlin-gradle-plugin') // Kotlin Gradle plugin
-
-        // Firebase Google Services Gradle plugin
-        classpath 'com.google.gms:google-services:4.4.2'
->>>>>>> c44521a (Updated TrainerDashboardScreen and firebaseConfig.js)
+        classpath 'com.android.tools.build:gradle:7.3.0' // Android Gradle Plugin
+        classpath 'com.facebook.react:react-native-gradle-plugin' // React Native Plugin
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin' // Kotlin Plugin
+        classpath 'com.google.gms:google-services:4.4.2' // Google Services Plugin
     }
 }
 
@@ -38,30 +25,8 @@ apply plugin: "com.facebook.react.rootproject"
 
 allprojects {
     repositories {
-        maven {
-<<<<<<< HEAD
-            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-            url(new File(['node', '--print', "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), '../android'))
-        }
-        maven {
-            // Android JSC is installed from npm
-            url(new File(['node', '--print', "require.resolve('jsc-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), '../dist'))
-        }
-
-        google()
-        mavenCentral()
-        maven { url 'https://www.jitpack.io' }
-=======
-            // React Native JS, Obj-C sources, Android binaries from npm
-            url(new File(['node', '--print', "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), '../android'))
-        }
-        maven {
-            // Android JSC binaries from npm
-            url(new File(['node', '--print', "require.resolve('jsc-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), '../dist'))
-        }
-        google() // Firebase and Android repositories
+        google() // Required for Firebase and Android tools
         mavenCentral() // Central Maven repository
         maven { url 'https://www.jitpack.io' } // For JitPack libraries
->>>>>>> c44521a (Updated TrainerDashboardScreen and firebaseConfig.js)
     }
 }
