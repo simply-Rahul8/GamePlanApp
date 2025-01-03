@@ -12,8 +12,11 @@ import {
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth, db } from '../../utils/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 
-const { width: screenWidth } = Dimensions.get('window'); // Get screen width
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function LoginScreen({ navigation }) {
   const [isTrainer, setIsTrainer] = useState(true);
@@ -22,36 +25,58 @@ export default function LoginScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert(
-        '⚠️ Missing Information',
-        'Please fill in all fields before logging in.',
-        [{ text: 'OK', style: 'default' }]
-      );
+      Alert.alert('⚠️ Missing Information', 'Please fill in all fields before logging in.', [
+        { text: 'OK', style: 'default' },
+      ]);
       return;
     }
 
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      // Authenticate the user
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-      if (isTrainer) {
-        navigation.navigate('TrainerDashboard');
+      // Fetch user data from Firestore
+      const collectionName = isTrainer ? 'trainers' : 'students';
+      const userDocRef = doc(db, collectionName, user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+
+        // Redirect based on user type
+        if (isTrainer) {
+          navigation.navigate('TrainerDashboard', {
+            trainerID: userData.trainerID, // Use generated trainer ID
+            trainerData: userData,
+          });
+        } else {
+          navigation.navigate('StudentDashboard', {
+            studentID: user.uid, // Student's UID
+            studentData: userData,
+          });
+        }
       } else {
-        navigation.navigate('StudentDashboard');
+        Alert.alert('Error', `No data found in ${collectionName}. Please sign up.`);
       }
-    }, 2000);
+    } catch (error) {
+      console.error('Login error:', error.message);
+      Alert.alert('Error', `Login failed: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <LinearGradient colors={['#171717', '#444444']} style={styles.gradient}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Top Image */}
         <View style={styles.imageContainer}>
           <Image
-            source={require("../../assets/banner.png")}
+            source={require('../../assets/banner.png')}
             style={styles.bannerImage}
             resizeMode="contain"
           />
@@ -69,12 +94,7 @@ export default function LoginScreen({ navigation }) {
                 style={[styles.toggleButton, isTrainer ? styles.activeToggle : {}]}
                 onPress={() => setIsTrainer(true)}
               >
-                <Text
-                  style={[
-                    styles.toggleText,
-                    isTrainer ? styles.activeToggleText : {},
-                  ]}
-                >
+                <Text style={[styles.toggleText, isTrainer ? styles.activeToggleText : {}]}>
                   Trainer
                 </Text>
               </TouchableOpacity>
@@ -82,21 +102,16 @@ export default function LoginScreen({ navigation }) {
                 style={[styles.toggleButton, !isTrainer ? styles.activeToggle : {}]}
                 onPress={() => setIsTrainer(false)}
               >
-                <Text
-                  style={[
-                    styles.toggleText,
-                    !isTrainer ? styles.activeToggleText : {},
-                  ]}
-                >
+                <Text style={[styles.toggleText, !isTrainer ? styles.activeToggleText : {}]}>
                   Student
                 </Text>
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.label}>Username or Email</Text>
+            <Text style={styles.label}>Email</Text>
             <TextInput
               style={styles.input}
-              placeholder="Enter your username or email"
+              placeholder="Enter your email"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -113,12 +128,9 @@ export default function LoginScreen({ navigation }) {
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 placeholderTextColor="#CCCCCC"
-                
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Text style={styles.showPassword}>
-                  {showPassword ? '🙈' : '👁️‍🗨️'}
-                </Text>
+                <Text style={styles.showPassword}>{showPassword ? '🙈' : '👁️‍🗨️'}</Text>
               </TouchableOpacity>
             </View>
 
@@ -153,31 +165,11 @@ export default function LoginScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
-  scrollContainer: {
-    flexGrow: 1,
-    padding: 20,
-    alignItems: 'center',
-  },
-  imageContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  bannerImage: {
-    width: screenWidth * 1, // 80% of screen width
-    height: screenWidth * 0.6, // Maintain aspect ratio (adjust as needed)
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  loadingText: {
-    marginTop: 10,
-    color: '#EDEDED',
-    fontSize: 16,
-    fontStyle: 'italic',
-  },
+  scrollContainer: { flexGrow: 1, padding: 20, alignItems: 'center' },
+  imageContainer: { width: '100%', alignItems: 'center', marginBottom: 20 },
+  bannerImage: { width: screenWidth * 1, height: screenWidth * 0.6 },
+  loadingContainer: { alignItems: 'center', justifyContent: 'center', flex: 1 },
+  loadingText: { marginTop: 10, color: '#EDEDED', fontSize: 16, fontStyle: 'italic' },
   toggleBox: {
     flexDirection: 'row',
     borderWidth: 2,
@@ -188,75 +180,21 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: '100%',
   },
-  toggleButton: {
-    flex: 1,
-    paddingVertical: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  activeToggle: {
-    backgroundColor: '#DA0037',
-  },
+  toggleButton: { flex: 1, paddingVertical: 15, alignItems: 'center', justifyContent: 'center' },
+  activeToggle: { backgroundColor: '#DA0037' },
   toggleText: { fontSize: 16, color: '#EDEDED', fontWeight: 'bold' },
   activeToggleText: { color: '#FFFFFF', fontWeight: 'bold' },
   label: { fontSize: 16, color: '#EDEDED', alignSelf: 'flex-start', marginBottom: 10 },
-  input: {
-    borderWidth: 2,
-    borderColor: '#555555',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 20,
-    backgroundColor: '#1E1E1E',
-    color: '#FFFFFF',
-    width: '100%',
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#555555',
-    borderRadius: 10,
-    padding: 3,
-    backgroundColor: '#1E1E1E',
-    marginBottom: 20,
-    width: '100%',
-  },
+  input: { borderWidth: 2, borderColor: '#555555', borderRadius: 10, padding: 12, marginBottom: 20, backgroundColor: '#1E1E1E', color: '#FFFFFF', width: '100%' },
+  passwordContainer: { flexDirection: 'row', alignItems: 'center', borderWidth: 2, borderColor: '#555555', borderRadius: 10, padding: 3, backgroundColor: '#1E1E1E', marginBottom: 20, width: '100%' },
   passwordInput: { flex: 1, color: '#FFFFFF', fontSize: 16 },
   showPassword: { fontSize: 16, color: '#CCCCCC', marginLeft: 10 },
   forgotPassword: { color: '#EDEDED', alignSelf: 'flex-end', fontSize: 14, marginBottom: 20 },
-  loginButton: {
-    backgroundColor: '#DA0037',
-    paddingVertical: 15,
-    borderRadius: 25,
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 4 },
-  },
+  loginButton: { backgroundColor: '#DA0037', paddingVertical: 15, borderRadius: 25, alignItems: 'center', width: '100%', marginBottom: 20 },
   loginButtonText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
-  separator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    width: '100%',
-  },
+  separator: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, width: '100%' },
   line: { flex: 1, height: 1, backgroundColor: '#555555' },
   orText: { marginHorizontal: 10, color: '#EDEDED' },
-  signUpButton: {
-    borderWidth: 2,
-    borderColor: '#EDEDED',
-    paddingVertical: 15,
-    borderRadius: 25,
-    alignItems: 'center',
-    backgroundColor: '#444444',
-    width: '100%',
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 4 },
-  },
+  signUpButton: { borderWidth: 2, borderColor: '#EDEDED', paddingVertical: 15, borderRadius: 25, alignItems: 'center', backgroundColor: '#444444', width: '100%' },
   signUpText: { color: '#EDEDED', fontSize: 18, fontWeight: 'bold' },
 });

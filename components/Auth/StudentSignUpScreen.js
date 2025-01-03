@@ -11,8 +11,9 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
-import { db } from '../../utils/firebaseConfig'; // Import Firestore instance
-import { addDoc, collection } from 'firebase/firestore'; // Import Firestore functions
+import { auth, db } from '../../utils/firebaseConfig'; // Import Firebase instances
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
 export default function StudentSignUpScreen({ navigation }) {
   const [fullName, setFullName] = useState('');
@@ -44,30 +45,32 @@ export default function StudentSignUpScreen({ navigation }) {
       return;
     }
 
-    const studentData = {
-      name: fullName,
-      age: parseInt(age, 10),
-      email,
-      password,
-      trainerID,
-      studentID,
-      address,
-      sport,
-      gender,
-      emergencyContact,
-      image: 'https://via.placeholder.com/150', // Default profile image
-    };
-
     try {
+      // Create student account in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
       // Save student data to Firestore
-      const studentsCollection = collection(db, 'students');
-      await addDoc(studentsCollection, studentData);
+      const studentData = {
+        name: fullName,
+        age: parseInt(age, 10),
+        email,
+        trainerID,
+        studentID,
+        address,
+        sport,
+        gender,
+        emergencyContact,
+        image: 'https://via.placeholder.com/150', // Default profile image
+      };
+
+      await setDoc(doc(db, 'students', user.uid), studentData);
 
       Alert.alert('Success', 'Student account created successfully!');
       navigation.navigate('Login'); // Redirect to login screen after successful sign-up
     } catch (error) {
       console.error('Error saving student data:', error);
-      Alert.alert('Error', 'Failed to create account. Please try again.');
+      Alert.alert('Error', `Failed to create account: ${error.message}`);
     }
   };
 

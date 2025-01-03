@@ -13,21 +13,19 @@ import { auth } from '../../utils/firebaseConfig'; // Ensure your Firebase confi
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
 
   const handleResetPassword = async () => {
-    if (!email || !newPassword) {
-      Alert.alert('Error', 'Please fill in all fields.');
+    if (!email) {
+      Alert.alert('Error', 'Please enter your email.');
       return;
     }
 
     try {
       // Send password reset email
       await sendPasswordResetEmail(auth, email);
-
       Alert.alert(
         'Success',
-        'A password reset link has been sent to your email. Please check your inbox to complete the process.'
+        'A password reset link has been sent to your email. Please check your inbox to reset your password.'
       );
     } catch (error) {
       console.error('Error resetting password:', error);
@@ -40,14 +38,14 @@ export default function ForgotPasswordScreen() {
 
   return (
     <LinearGradient
-      colors={['#171717', '#444444']} // Consistent gradient colors
+      colors={['#171717', '#444444']} // Gradient background
       style={styles.gradient}
     >
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.heading}>Forgot Password</Text>
           <Text style={styles.subheading}>
-            Enter your email and we’ll send you instructions to reset your password.
+            Enter your email, and we’ll send you instructions to reset your password.
           </Text>
         </View>
 
@@ -63,21 +61,6 @@ export default function ForgotPasswordScreen() {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-            />
-          </View>
-        </View>
-
-        {/* New Password Input */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>New Password</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter new password"
-              placeholderTextColor="#666"
-              value={newPassword}
-              onChangeText={setNewPassword}
-              secureTextEntry
             />
           </View>
         </View>

@@ -18,6 +18,7 @@ import { db } from '../../utils/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 
 export default function StudentDashboardScreen({ navigation, route }) {
+  const { studentData } = route.params || {};
   const [tasks, setTasks] = useState({ Exercise: [], Practice: [] });
   const [selectedToggle, setSelectedToggle] = useState('Exercise');
   const [attendanceDates, setAttendanceDates] = useState({});
@@ -25,31 +26,12 @@ export default function StudentDashboardScreen({ navigation, route }) {
   const [attendanceMarked, setAttendanceMarked] = useState(false);
   const [isInTargetLocation, setIsInTargetLocation] = useState(false);
 
-  // Safely access studentID from route params
-  const studentID = route.params?.studentID;
-  const [studentProfile, setStudentProfile] = useState(null);
-
   useEffect(() => {
-    if (!studentID) {
-      Alert.alert('Error', 'Student ID is missing. Please log in again.');
+    if (!studentData) {
+      Alert.alert('Error', 'Student data is missing. Please log in again.');
       navigation.goBack();
       return;
     }
-
-    const loadStudentProfile = async () => {
-      try {
-        // Fetch student profile from Firestore
-        const studentDoc = await getDoc(doc(db, 'students', studentID));
-        if (studentDoc.exists()) {
-          setStudentProfile(studentDoc.data());
-        } else {
-          Alert.alert('Error', 'Student profile not found.');
-        }
-      } catch (error) {
-        console.error('Error fetching student profile:', error);
-        Alert.alert('Error', 'Failed to fetch student profile.');
-      }
-    };
 
     const loadTasksAndAttendance = async () => {
       const storedTasks = await AsyncStorage.getItem('tasks');
@@ -61,33 +43,28 @@ export default function StudentDashboardScreen({ navigation, route }) {
       if (storedStreak) setStreak(parseInt(storedStreak, 10));
     };
 
-    loadStudentProfile();
-    loadTasksAndAttendance();
-  }, [studentID]);
-
-  useEffect(() => {
-    if (studentProfile) {
-      const fetchTrainerLocation = async () => {
-        try {
-          if (studentProfile?.trainerID) {
-            const trainerDoc = await getDoc(doc(db, 'trainers', studentProfile.trainerID));
-            if (trainerDoc.exists()) {
-              const { location } = trainerDoc.data();
-              if (location) {
-                checkLocation(location.latitude, location.longitude, location.radius);
-              }
-            } else {
-              Alert.alert('Error', 'Trainer data not found.');
+    const fetchTrainerLocation = async () => {
+      try {
+        const trainerID = studentData.trainerID;
+        if (trainerID) {
+          const trainerDoc = await getDoc(doc(db, 'trainers', trainerID));
+          if (trainerDoc.exists()) {
+            const { location } = trainerDoc.data();
+            if (location) {
+              checkLocation(location.latitude, location.longitude, location.radius);
             }
+          } else {
+            Alert.alert('Error', 'Trainer data not found.');
           }
-        } catch (error) {
-          console.error('Error fetching trainer location:', error);
         }
-      };
+      } catch (error) {
+        console.error('Error fetching trainer location:', error);
+      }
+    };
 
-      fetchTrainerLocation();
-    }
-  }, [studentProfile]);
+    loadTasksAndAttendance();
+    fetchTrainerLocation();
+  }, [studentData]);
 
   const checkLocation = async (latitude, longitude, radius) => {
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -156,22 +133,17 @@ export default function StudentDashboardScreen({ navigation, route }) {
     }
   };
 
-  if (!studentProfile) {
-    return (
-      <View style={styles.loaderContainer}>
-        <Text style={styles.loaderText}>Loading student profile...</Text>
-      </View>
-    );
-  }
-
   return (
     <LinearGradient colors={['#171717', '#444444']} style={styles.gradient}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* Header */}
         <TouchableOpacity style={styles.header}>
-          <Image source={{ uri: studentProfile.image }} style={styles.profileImage} />
-          <Text style={styles.profileName}>{studentProfile.name}</Text>
-          <Text style={styles.profileId}>ID: {studentID}</Text>
+          <Image
+            source={{ uri: studentData?.image || 'https://via.placeholder.com/150' }}
+            style={styles.profileImage}
+          />
+          <Text style={styles.profileName}>{studentData?.name || 'Student Name'}</Text>
+          <Text style={styles.profileId}>ID: {studentData?.studentID}</Text>
         </TouchableOpacity>
 
         {/* Streak Badge */}
@@ -191,7 +163,8 @@ export default function StudentDashboardScreen({ navigation, route }) {
           <Text
             style={[
               styles.attendanceButtonText,
-              (!isInTargetLocation || attendanceMarked) && styles.attendanceButtonTextDisabled,
+              (!isInTargetLocation || attendanceMarked) &&
+                styles.attendanceButtonTextDisabled,
             ]}
           >
             {attendanceMarked ? 'Attendance Marked' : 'Mark Attendance'}
@@ -299,8 +272,6 @@ export default function StudentDashboardScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   container: { flexGrow: 1, padding: 20 },
-  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loaderText: { fontSize: 16, color: '#FFFFFF' },
   header: { alignItems: 'center', marginBottom: 20 },
   profileImage: { width: 100, height: 100, borderRadius: 50 },
   profileName: { fontSize: 20, color: '#FFFFFF' },
@@ -323,7 +294,14 @@ const styles = StyleSheet.create({
   activeToggleButton: { backgroundColor: '#DA0037' },
   toggleText: { fontSize: 16, color: '#CCCCCC' },
   activeToggleText: { color: '#FFFFFF', fontWeight: 'bold' },
-  taskItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, padding: 10, backgroundColor: '#1E1E1E', borderRadius: 10 },
+  taskItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 10,
+  },
   taskName: { marginLeft: 10, fontSize: 16, color: '#FFFFFF' },
   calendarContainer: { marginBottom: 20 },
   saveButton: { backgroundColor: '#DA0037', paddingVertical: 15, borderRadius: 10, alignItems: 'center' },

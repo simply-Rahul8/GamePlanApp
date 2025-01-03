@@ -12,8 +12,9 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
-import { addDoc, collection } from 'firebase/firestore';
-import { db } from '../../utils/firebaseConfig'; // Firestore instance
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from '../../utils/firebaseConfig'; // Firestore and Auth instances
+import { doc, setDoc } from 'firebase/firestore'; // Use setDoc for custom document IDs
 
 export default function TrainerSignUpScreen({ navigation }) {
   const [name, setName] = useState('');
@@ -55,12 +56,21 @@ export default function TrainerSignUpScreen({ navigation }) {
       Alert.alert('Error', 'Please fill in all mandatory fields.');
       return;
     }
+
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match.');
       return;
     }
 
     try {
+      // Register trainer in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, 'trainers', user.uid), trainerData);
+
+
+      // Save trainer data in Firestore
       const trainerData = {
         name,
         age,
@@ -78,14 +88,21 @@ export default function TrainerSignUpScreen({ navigation }) {
         },
       };
 
-      // Save trainer data in Firestore
-      await addDoc(collection(db, 'trainers'), trainerData);
+      await setDoc(doc(db, 'trainers', user.uid), trainerData); // Use UID as document ID
 
       Alert.alert('Success', 'Trainer account created successfully!');
       navigation.navigate('Login'); // Redirect to login screen
     } catch (error) {
-      console.error('Error saving trainer data:', error.message);
-      Alert.alert('Error', 'Failed to create trainer account.');
+      if (error.code === 'auth/email-already-in-use') {
+        Alert.alert(
+          'Error',
+          'This email is already registered. Please log in instead.',
+          [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+        );
+      } else {
+        console.error('Error saving trainer data:', error.message);
+        Alert.alert('Error', 'Failed to create trainer account.');
+      }
     }
   };
 
